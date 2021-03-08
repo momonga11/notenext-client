@@ -1,0 +1,14 @@
+{
+  "include": ["./src/**/*"],
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "es2015",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "typeAcquisition": {
+    "exclude": [ "dotenv" ]
+  }
+}
