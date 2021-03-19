@@ -1,11 +1,11 @@
 <template>
   <CommonAuthPage titleText="ログイン" commitButtonText="ログイン" @commit-btn-click="submit">
     <template v-slot:header>
-      <BaseAlert type="success" v-show="confirmedSuccess" v-model="alert">
+      <BaseAlert type="success" v-show="confirmedSuccess" v-model="alert" id="alert">
         {{ confirmedSuccessMessage }}
       </BaseAlert>
     </template>
-    <CommonEmailField v-model="auth.email" :fieldClass="'mb-2'"></CommonEmailField>
+    <CommonEmailField v-model="auth.email" :fieldClass="'mb-2'" id="email-signin"></CommonEmailField>
     <ValidationProvider v-slot="{ errors }" :name="passwordInfo.label" rules="required">
       <BasePassword
         v-model="auth.password"
@@ -13,16 +13,24 @@
         :label="passwordInfo.label"
         outlined
         :class="'mb-2'"
+        id="password-signin"
       ></BasePassword>
     </ValidationProvider>
     <template v-slot:bottom-items>
       <div class="d-flex align-center">
-        <BaseLinkButton :to="{ name: 'resetPassword' }">パスワードをお忘れですか？</BaseLinkButton>
+        <BaseLinkButton :to="{ name: 'resetPassword' }" id="reset-password-link"
+          >パスワードをお忘れですか？</BaseLinkButton
+        >
         <span class="mt-2 blue--text text--darken-1">/</span>
-        <BaseLinkButton :to="{ name: 'signup' }">アカウント作成</BaseLinkButton>
+        <BaseLinkButton :to="{ name: 'signup' }" id="signup-link">アカウント作成</BaseLinkButton>
       </div>
       <v-divider class="my-5"></v-divider>
-      <BaseButton height="40" :block="true" color="light-blue darken-1 white--text" @click="loginSampleUser"
+      <BaseButton
+        height="40"
+        :block="true"
+        color="light-blue darken-1 white--text"
+        @click="loginSampleUser"
+        id="sample-login-button"
         >サンプルログイン</BaseButton
       >
     </template>
@@ -77,9 +85,12 @@ export default {
         this.alert = false;
 
         // ログイン処理
-        this.$store.dispatch('auth/signin', this.auth).then(() => {
-          this.redirectMainPage();
-        });
+        this.$store
+          .dispatch('auth/signin', this.auth)
+          .then(() => {
+            this.redirectMainPage();
+          })
+          .catch(() => {});
       });
     },
     loginSampleUser() {
@@ -87,23 +98,32 @@ export default {
       this.alert = false;
 
       // サンプルログイン処理
-      this.$store.dispatch('auth/signin_sample').then(() => {
-        this.redirectMainPage();
-      });
+      this.$store
+        .dispatch('auth/signin_sample')
+        .then(() => {
+          this.redirectMainPage();
+        })
+        .catch(() => {});
     },
     redirectMainPage() {
       // ログインに成功した場合、所属するプロジェクトを取得する
-      this.$store.dispatch('project/getProjects').then(response => {
-        if (response.length) {
-          // 1ユーザー1プロジェクトのため1番目からidを取得し、メイン画面に遷移する
-          this.$router.push({ name: 'AllNoteList', params: { projectId: response[0].id } });
-        } else {
-          // 取得できなかった場合は初期プロジェクトを作成する
-          this.$store.dispatch('project/create').then(project => {
-            this.$router.push({ name: 'AllNoteList', params: { projectId: project.id } });
-          });
-        }
-      });
+      this.$store
+        .dispatch('project/getProjects')
+        .then(response => {
+          if (response.length) {
+            // 1ユーザー1プロジェクトのため1番目からidを取得し、メイン画面に遷移する
+            this.$router.push({ name: 'AllNoteList', params: { projectId: response[0].id } });
+          } else {
+            // 取得できなかった場合は初期プロジェクトを作成する
+            this.$store
+              .dispatch('project/create')
+              .then(project => {
+                this.$router.push({ name: 'AllNoteList', params: { projectId: project.id } });
+              })
+              .catch(() => {});
+          }
+        })
+        .catch(() => {});
     },
   },
   mounted() {

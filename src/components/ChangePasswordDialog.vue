@@ -12,6 +12,7 @@
           :label="currentPasswordInfo.label"
           :fieldClass="'mx-4 mt-7'"
           :isShowAppendIcon="false"
+          id="current-password-changepassword-dialog"
         ></CommonPasswordField>
         <CommonPasswordField
           :name="passwordNewInfo.label"
@@ -20,6 +21,7 @@
           :fieldClass="'mx-4 mt-3'"
           :isShowAppendIcon="false"
           vid="confirmation"
+          id="password-changepassword-dialog"
         ></CommonPasswordField>
         <CommonPasswordField
           :name="passwordNewInfo.label"
@@ -28,6 +30,7 @@
           :fieldClass="'mx-4 mt-3'"
           :isShowAppendIcon="true"
           :isConfirmed="true"
+          id="password-confirm-changepassword-dialog"
         ></CommonPasswordField>
       </FormDialogCard>
     </v-dialog>
@@ -81,10 +84,13 @@ export default {
           return;
         }
 
-        this.$store.dispatch('auth/updateCurrentPassword', this.auth).then(() => {
-          this.$emit('success');
-          this.clear();
-        });
+        this.$store
+          .dispatch('auth/updateCurrentPassword', this.auth)
+          .then(() => {
+            this.$emit('success');
+            this.clear();
+          })
+          .catch(() => {});
       });
     },
     clear() {

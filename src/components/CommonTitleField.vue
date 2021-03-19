@@ -16,7 +16,7 @@ export default {
   inheritAttrs: false,
   props: {
     value: {
-      type: String,
+      validator: prop => typeof prop === 'string' || prop === null,
       required: true,
     },
   },

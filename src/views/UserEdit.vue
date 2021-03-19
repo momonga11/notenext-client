@@ -2,12 +2,12 @@
   <FormDialogCard
     titleText="ユーザー設定"
     @commit-btn-click="submit"
-    @cancel-btn-click="clear"
+    @cancel-btn-click="close"
     :isVisbleCancelBtn="false"
     flat
   >
     <template v-slot:header-items>
-      <BaseAlert type="success" v-show="alert" v-model="alert">
+      <BaseAlert type="success" v-show="alert" v-model="alert" id="alert-useredit">
         {{ alertMessage }}
       </BaseAlert>
     </template>
@@ -18,18 +18,18 @@
             <v-card-actions class="justify-center">
               <v-menu offset-y v-model="isMenuOpen">
                 <template v-slot:activator="{ on, attrs }">
-                  <v-avatar v-bind="attrs" v-on="on" size="164">
+                  <v-avatar v-bind="attrs" v-on="on" size="164" id="image-avatar-useredit">
                     <v-img v-if="isUploadedImage" :src="auth.avatar.data" alt=""></v-img>
                     <v-img v-else :src="defaultAvatar" alt=""></v-img>
                   </v-avatar>
                 </template>
                 <v-list dense>
-                  <v-list-item @click="selectFile">
+                  <v-list-item @click="selectFile" id="select-imagefile">
                     <v-list-item-title>画像アップロード</v-list-item-title>
                     <ValidationProvider v-slot="{ validate }" name="画像ファイル" :rules="avatarValidateRule">
                       <input
                         type="file"
-                        id="file_upload"
+                        id="avatar-upload"
                         class="d-none"
                         ref="file"
                         accept="image/*"
@@ -40,24 +40,30 @@
                   </v-list-item>
 
                   <template v-if="isUploadedImage">
-                    <v-list-item @click="resetImage">
+                    <v-list-item @click="resetImage" id="reset-imagefile">
                       <v-list-item-title>削除</v-list-item-title>
                     </v-list-item>
                   </template>
 
-                  <v-list-item @click="isMenuOpen = !isMenuOpen">
+                  <v-list-item @click="isMenuOpen = !isMenuOpen" id="cancel-imagemenu">
                     <v-list-item-title>キャンセル</v-list-item-title>
                   </v-list-item>
                 </v-list>
               </v-menu>
             </v-card-actions>
-            <div class="error--text text-caption text-center">{{ avatarErrorMessage }}</div>
+            <div v-if="avatarErrorMessage" class="error--text text-caption text-center" id="error-message-useredit">
+              {{ avatarErrorMessage }}
+            </div>
           </v-card>
         </v-col>
         <v-col lg="3" md="3">
           <v-card class="pa-2" flat tile max-height="300">
-            <CommonUserNameField v-model="auth.name" :fieldClass="'mx-4 mt-5'"></CommonUserNameField>
-            <CommonEmailField v-model="auth.email" :fieldClass="'mx-4 mt-5'"></CommonEmailField>
+            <CommonUserNameField
+              v-model="auth.name"
+              :fieldClass="'mx-4 mt-5'"
+              id="user-name-useredit"
+            ></CommonUserNameField>
+            <CommonEmailField v-model="auth.email" :fieldClass="'mx-4 mt-5'" id="email-useredit"></CommonEmailField>
           </v-card>
         </v-col>
       </v-row>
@@ -69,8 +75,16 @@
           <v-col lg="3">
             <v-card class="pl-2" flat tile>
               <div class="pl-4">
-                <ChangePasswordDialog v-slot="{ openDialog }" @success="showInfoChangedPassword">
-                  <BaseButton :width="200" color="green lighten-5 green--text" @click.stop="openDialog"
+                <ChangePasswordDialog
+                  v-slot="{ openDialog }"
+                  @success="showInfoChangedPassword"
+                  id="change-password-dialog-useredit"
+                >
+                  <BaseButton
+                    :width="200"
+                    color="green lighten-5 green--text"
+                    @click.stop="openDialog"
+                    id="change-password-useredit"
                     >パスワードを変更する
                   </BaseButton>
                 </ChangePasswordDialog>
@@ -95,9 +109,12 @@
                 commitBtnText="アカウント削除"
                 commitBtnColor="red darken-1 white--text"
                 @commit="deleteAccount"
+                id="account-delete-dialog-useredit"
               >
                 <template v-slot:default="{ openDialog }">
-                  <BaseButton color="red darken-1 white--text" @click.stop="openDialog">アカウントを削除</BaseButton>
+                  <BaseButton color="red darken-1 white--text" @click.stop="openDialog" id="account-delete-useredit"
+                    >アカウントを削除</BaseButton
+                  >
                 </template>
                 <template v-slot:message>
                   <v-card-text>
@@ -131,6 +148,8 @@ import CommonEmailField from '@/components/CommonEmailField.vue';
 import CommonUserNameField from '@/components/CommonUserNameField.vue';
 import { emailInfo, nameInfo } from '@/mixins/inputInfo/auth-info';
 import defaultAvatar from '@/assets/no_image.png';
+import redirect from '@/mixins/redirect';
+import store from '@/store';
 import message from '../consts/message';
 import constants from '../consts/constants';
 
@@ -144,7 +163,7 @@ export default {
     CommonEmailField,
     CommonUserNameField,
   },
-  mixins: [emailInfo, nameInfo],
+  mixins: [emailInfo, nameInfo, redirect],
   data() {
     return {
       panel: false,
@@ -155,7 +174,6 @@ export default {
         email: '',
         avatar: { data: '', filename: '' },
       },
-      dialog: false,
       alertMessage: '',
       avatarErrorMessage: '',
     };
@@ -195,25 +213,34 @@ export default {
 
         const { name, email } = this.auth;
         const isChangedEmail = email !== this.$store.state.auth.email;
-        this.$store.dispatch('auth/update', { name, email }).then(() => {
-          // メールアドレスが変わっていたら、違うメッセージを出す
-          if (isChangedEmail) {
-            this.showInfoChangedEmail();
-          } else {
-            this.showInfoSavedAuth();
-          }
-        });
+        this.$store
+          .dispatch('auth/update', { name, email })
+          .then(() => {
+            // メールアドレスが変わっていたら、違うメッセージを出す
+            if (isChangedEmail) {
+              this.showInfoChangedEmail();
+            } else {
+              this.showInfoSavedAuth();
+            }
+          })
+          .catch(() => {});
       });
     },
-    clear() {
+    close() {
       this.$router.push({ name: 'AllNoteList', params: { projectId: this.$store.state.project.id } });
     },
     deleteAccount() {
-      this.$store.dispatch('project/delete').then(() => {
-        this.$store.dispatch('auth/delete').then(() => {
-          this.$router.replace({ name: 'info', params: { message: message.INFO_SUCCESS_DELETE_ACCOUNT } });
-        });
-      });
+      this.$store
+        .dispatch('project/delete')
+        .then(() => {
+          this.$store
+            .dispatch('auth/delete')
+            .then(() => {
+              this.$router.replace({ name: 'info', params: { message: message.INFO_SUCCESS_DELETE_ACCOUNT } });
+            })
+            .catch(() => {});
+        })
+        .catch(() => {});
     },
     selectFile() {
       this.$refs.file.click();
@@ -251,14 +278,17 @@ export default {
     },
     resetImage() {
       // API連携
-      this.$store.dispatch('auth/deleteAvatar', this.auth.avatar.data).then(() => {
-        this.resetFileValue();
-        this.auth.avatar.filename = '';
-        this.auth.avatar.data = '';
-        this.avatarErrorMessage = '';
+      this.$store
+        .dispatch('auth/deleteAvatar', this.auth.avatar.data)
+        .then(() => {
+          this.resetFileValue();
+          this.auth.avatar.filename = '';
+          this.auth.avatar.data = '';
+          this.avatarErrorMessage = '';
 
-        this.showInfoDeleteAvatar();
-      });
+          this.showInfoDeleteAvatar();
+        })
+        .catch(() => {});
     },
     resetFileValue() {
       const { file } = this.$refs;
@@ -291,13 +321,20 @@ export default {
     this.alert = false;
   },
   beforeRouteEnter(to, from, next) {
-    next(vm => {
-      vm.$store.dispatch('auth/get').then(data => {
-        vm.auth.name = data.name;
-        vm.auth.email = data.email;
-        vm.auth.avatar.data = data.avatar;
+    store
+      .dispatch('auth/get')
+      .then(data => {
+        next(vm => {
+          vm.auth.name = data.name;
+          vm.auth.email = data.email;
+          vm.auth.avatar.data = data.avatar;
+        });
+      })
+      .catch(error => {
+        next(vm => {
+          vm.redirectTop(vm, error.response ? error.response.status : '');
+        });
       });
-    });
   },
   watch: {
     hasError(value) {

@@ -78,7 +78,7 @@ export default {
       }
     },
     getText() {
-      return document.querySelector('#editor div[contenteditable="true"]').innerText;
+      return this.$refs.toastuiEditor.invoke('getSquire').body.innerText;
     },
     getHtmlText() {
       return this.$refs.toastuiEditor.invoke('getHtml');
@@ -117,7 +117,7 @@ export default {
 
 <style lang="scss">
 .tui-editor-contents {
-  font-size: 14px !important;
+  font-size: 16px !important;
 }
 
 .te-ww-container .te-editor {

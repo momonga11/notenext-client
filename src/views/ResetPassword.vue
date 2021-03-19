@@ -8,9 +8,9 @@
     <v-card-subtitle class="pt-0 pb-5"
       >登録されているメールアドレスを入力してください。<br />パスワードリセットメールを送信します。</v-card-subtitle
     >
-    <CommonEmailField v-model="auth.email" :fieldClass="'mb-2'"></CommonEmailField>
+    <CommonEmailField v-model="auth.email" :fieldClass="'mb-2'" id="email-resetPassword"></CommonEmailField>
     <template v-slot:bottom-items>
-      <BaseLinkButton :to="{ name: 'signin' }" class="mt-5">ログイン画面に戻る</BaseLinkButton>
+      <BaseLinkButton :to="{ name: 'signin' }" class="mt-5" id="signin-link">ログイン画面に戻る</BaseLinkButton>
     </template>
   </CommonAuthPage>
 </template>
@@ -43,9 +43,12 @@ export default {
           return;
         }
 
-        this.$store.dispatch('auth/resetPassword', this.auth.email).then(() => {
-          this.$router.replace({ name: 'info', params: { message: message.INFO_SEND_RESET_PASSWORD_MAIL } });
-        });
+        this.$store
+          .dispatch('auth/resetPassword', this.auth.email)
+          .then(() => {
+            this.$router.replace({ name: 'info', params: { message: message.INFO_SEND_RESET_PASSWORD_MAIL } });
+          })
+          .catch(() => {});
       });
     },
   },

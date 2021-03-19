@@ -8,6 +8,7 @@
       :fieldClass="'mb-2'"
       :isShowAppendIcon="false"
       vid="confirmation"
+      id="password-changepassword"
     ></CommonPasswordField>
     <CommonPasswordField
       :name="passwordInfo.label"
@@ -15,6 +16,7 @@
       :label="passwordConfirmationInfo.label"
       :fieldClass="'mb-2'"
       :isConfirmed="true"
+      id="password-confirm-changepassword"
     ></CommonPasswordField>
   </CommonAuthPage>
 </template>
@@ -58,9 +60,12 @@ export default {
             accessToken: this.$route.query['access-token'],
           },
         };
-        this.$store.dispatch('auth/updatePassword', Object.assign(this.auth, authHeader)).then(() => {
-          this.$router.replace({ name: 'info', params: { message: message.INFO_SUCCESS_RESET_PASSWORD } });
-        });
+        this.$store
+          .dispatch('auth/updatePassword', Object.assign(this.auth, authHeader))
+          .then(() => {
+            this.$router.replace({ name: 'info', params: { message: message.INFO_SUCCESS_RESET_PASSWORD } });
+          })
+          .catch(() => {});
       });
     },
   },

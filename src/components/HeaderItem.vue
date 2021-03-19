@@ -13,7 +13,7 @@
         icons-and-text
       >
         <keep-alive>
-          <v-tab active-class="tab-selected" key="note" @change="changeNoteTab">
+          <v-tab active-class="tab-selected" key="note" @change="changeNoteTab" id="note-tab-header">
             ノート
             <v-icon>mdi-note-multiple</v-icon></v-tab
           >
@@ -29,17 +29,17 @@
     <v-spacer></v-spacer>
     <v-menu offset-y v-model="menuValue">
       <template v-slot:activator="{ on, attrs }">
-        <v-avatar v-bind="attrs" v-on="on" color="grey lighten-4" size="48">
+        <v-avatar v-bind="attrs" v-on="on" color="grey lighten-4" size="48" id="avatar-header">
           <v-img v-if="auth.avatar" :src="auth.avatar" alt=""></v-img>
           <v-img v-else :src="defaultAvatar" alt=""></v-img>
         </v-avatar>
       </template>
       <v-list>
-        <v-list-item :to="{ name: 'UserEdit' }">
+        <v-list-item :to="{ name: 'UserEdit' }" id="useredit-header">
           <v-list-item-title>ユーザー設定</v-list-item-title>
         </v-list-item>
 
-        <v-list-item @click="signout">
+        <v-list-item @click="signout" id="signout-header">
           <v-list-item-title>ログアウト</v-list-item-title>
         </v-list-item>
       </v-list>
@@ -89,10 +89,13 @@ export default {
       this.$router.push({ name: 'AllNoteList', params: { projectId: this.$route.params.projectId } });
     },
     signout() {
-      this.$store.dispatch('auth/signout').then(() => {
-        // TODO: ここ移動しなくてもいい気がする
-        // this.$router.push({ name: 'signin' });
-      });
+      this.$store
+        .dispatch('auth/signout')
+        .then(() => {
+          // TODO: ここ移動しなくてもいい気がする
+          // this.$router.push({ name: 'signin' });
+        })
+        .catch(() => {});
     },
   },
   watch: {

@@ -10,7 +10,9 @@
       </v-card-title>
       <BaseForm ref="baseform">
         <slot></slot>
-        <BaseButton height="40" :block="true" @click="commitBtnClick">{{ commitButtonText }}</BaseButton>
+        <BaseButton height="40" :block="true" @click="commitBtnClick" id="commit-button">{{
+          commitButtonText
+        }}</BaseButton>
       </BaseForm>
       <slot name="bottom-items"></slot>
     </v-card>

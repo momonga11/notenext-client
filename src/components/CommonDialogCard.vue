@@ -2,11 +2,11 @@
   <v-card v-bind="$attrs">
     <slot name="header-items"></slot>
 
-    <v-btn text icon :ripple="false" absolute top right class="mt-n3 mr-n3" @click="cancelBtnClick">
+    <v-btn text icon :ripple="false" absolute top right class="mt-n3 mr-n3" @click="cancelBtnClick" id="close-button">
       <v-icon>mdi-close-thick</v-icon>
     </v-btn>
 
-    <v-card-title class="green lighten-5">
+    <v-card-title class="green lighten-5" id="title-text">
       {{ titleText }}
     </v-card-title>
 

@@ -1,5 +1,5 @@
 <template>
-  <h1>hoge</h1>
+  <h1>ノートを選択してください</h1>
 </template>
 
 <script>

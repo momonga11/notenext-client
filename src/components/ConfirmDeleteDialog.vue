@@ -14,7 +14,7 @@
       >
         <v-container class="message">
           <template v-if="message">
-            <v-card-text>{{ message }}</v-card-text>
+            <v-card-text id="message">{{ message }}</v-card-text>
           </template>
           <template v-else>
             <slot name="message"></slot>

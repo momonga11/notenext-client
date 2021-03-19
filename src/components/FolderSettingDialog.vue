@@ -20,6 +20,7 @@
             outlined
             :maxlength="nameInfo.maxLength"
             :class="'mx-4 mt-7'"
+            id="folder-name"
           ></v-text-field>
         </ValidationProvider>
 
@@ -32,6 +33,7 @@
             :maxlength="descriptionInfo.maxLength"
             :class="'mx-4 mt-3'"
             auto-grow
+            id="folder-description"
           ></v-textarea>
         </ValidationProvider>
       </FormDialogCard>
@@ -95,7 +97,7 @@ export default {
           .then(() => {
             this.dialog = false;
           })
-          .catch(error => error);
+          .catch(() => {});
       });
     },
     clear() {
@@ -108,7 +110,7 @@ export default {
         this.commitBtnText = '変更を保存';
 
         this.$store
-          .dispatch('folder/get', { id: this.id, projectId: this.$route.params.projectId })
+          .dispatch('folder/get', { id: this.id, projectId: this.projectId })
           .then(state => {
             this.folder.name = state.name;
             this.folder.description = state.description;
@@ -126,10 +128,7 @@ export default {
       this.$emit('open-dialog');
     },
     createFolder() {
-      return this.$store.dispatch(
-        'folder/create',
-        Object.assign(this.folder, { projectId: this.$route.params.projectId })
-      );
+      return this.$store.dispatch('folder/create', Object.assign(this.folder, { projectId: this.projectId }));
     },
     updateFolder() {
       const { name, description, lockVersion } = this.folder;
@@ -138,7 +137,7 @@ export default {
         description,
         lockVersion,
         id: this.id,
-        projectId: this.$route.params.projectId,
+        projectId: this.projectId,
       });
     },
   },

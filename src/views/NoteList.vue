@@ -10,7 +10,7 @@
           </v-card-title>
           <v-menu offset-y v-model="menuValue">
             <template v-slot:activator="{ on, attrs }">
-              <v-btn text icon :ripple="false" v-bind="attrs" v-on="on">
+              <v-btn text icon :ripple="false" v-bind="attrs" v-on="on" id="folder-setting-notelist">
                 <v-icon>mdi-cog</v-icon>
               </v-btn>
             </template>
@@ -21,7 +21,7 @@
                 :projectId="projectId"
                 @open-dialog="changeMenuValue"
               >
-                <v-list-item @click.stop="openDialog">
+                <v-list-item @click.stop="openDialog" id="open-folder-update-dialog-notelist">
                   <v-list-item-title>フォルダ設定</v-list-item-title>
                 </v-list-item>
               </FolderSettingDialog>
@@ -32,7 +32,7 @@
                 @open-dialog="changeMenuValue"
                 @commit="deleteFolder"
               >
-                <v-list-item @click.stop="openDialog">
+                <v-list-item @click.stop="openDialog" id="open-folder-delete-dialog-notelist">
                   <v-list-item-title>フォルダ削除</v-list-item-title>
                 </v-list-item>
               </ConfirmDeleteDialog>
@@ -59,7 +59,7 @@
             </button>
           </SortOrderDialog>
           <div class="mr-1">
-            <BaseButton depressed class="green darken-1" :width="140" @click="createNote">
+            <BaseButton depressed class="green darken-1" :width="140" @click="createNote" id="create-note-notelist">
               <v-icon left> mdi-plus </v-icon>
               ノートを作成
             </BaseButton>
@@ -101,7 +101,7 @@
     </template>
     <template v-slot:main>
       <router-view v-show="isRouteNote"></router-view>
-      <div v-show="!isRouteNote">ノートを選択してください</div>
+      <div v-show="!isRouteNote" id="noselectnote"><NoSelectNote></NoSelectNote></div>
     </template>
   </CommonNoteList>
 </template>
@@ -111,9 +111,15 @@ import FolderSettingDialog from '@/components/FolderSettingDialog.vue';
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue';
 import SortOrderDialog from '@/components/SortOrderDialog.vue';
 import CommonNoteList from '@/components/CommonNoteList.vue';
+import NoSelectNote from '@/components/NoSelectNote.vue';
 import redirect from '@/mixins/redirect';
 import BaseButton from '@/components/BaseButton.vue';
 import formatDate from '@/mixins/format-date';
+import store from '@/store';
+
+const getNotes = (_store, projectId, folderId) => {
+  return _store.dispatch('note/getNotesByfolderId', { projectId, folderId });
+};
 
 export default {
   components: {
@@ -122,6 +128,7 @@ export default {
     SortOrderDialog,
     CommonNoteList,
     BaseButton,
+    NoSelectNote,
   },
   mixins: [redirect, formatDate],
   data() {
@@ -187,40 +194,50 @@ export default {
   },
   methods: {
     deleteFolder() {
-      this.$store.dispatch('folder/delete', { projectId: this.projectId, id: this.folderId }).then(() => {
-        this.$router.push({ name: 'AllNoteList' });
-      });
+      this.$store
+        .dispatch('folder/delete', { projectId: this.projectId, id: this.folderId })
+        .then(() => {
+          this.$router.push({ name: 'AllNoteList' });
+        })
+        .catch(() => {});
     },
     createNote() {
-      this.$store.dispatch('note/create', { projectId: this.projectId, folderId: this.folderId }).then(data => {
-        this.$router.push({
-          name: 'NoteInFolder',
-          params: { noteId: data.id },
-        });
-      });
+      this.$store
+        .dispatch('note/create', { projectId: this.projectId, folderId: this.folderId })
+        .then(data => {
+          this.$router.push({
+            name: 'NoteInFolder',
+            params: { noteId: data.id },
+          });
+        })
+        .catch(() => {});
     },
     changeMenuValue() {
       this.menuValue = !this.menuValue;
     },
-    async getNotes(projectId, folderId) {
-      return this.$store.dispatch('note/getNotesByfolderId', { projectId, folderId });
-    },
   },
   beforeRouteEnter(to, from, next) {
-    next(vm => {
-      // vm.isRouteNote = to.name === noteRouteName;
-      vm.getNotes(vm.projectId, vm.folderId).catch(error => {
-        vm.redirectTop(vm, error.response ? error.response.status : '');
+    getNotes(store, to.params.projectId, to.params.folderId)
+      .then(() => {
+        next();
+      })
+      .catch(error => {
+        next(vm => {
+          vm.redirectTop(vm, error.response ? error.response.status : '');
+        });
       });
-    });
   },
   beforeRouteUpdate(to, from, next) {
     // this.isRouteNote = to.name === noteRouteName;
 
     if (to.params.folderId !== from.params.folderId) {
-      this.getNotes(to.params.projectId, to.params.folderId).then(() => {
-        next();
-      });
+      getNotes(this.$store, to.params.projectId, to.params.folderId)
+        .then(() => {
+          next();
+        })
+        .catch(() => {
+          next(false);
+        });
     } else {
       next();
     }

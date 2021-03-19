@@ -1,9 +1,15 @@
 <template>
   <div class="mx-auto text-center my-3">
-    <BaseButton v-if="isVisbleCancelBtn" :isCancelBtn="true" @click="cancelBtnClick" class="mx-3">{{
+    <BaseButton v-if="isVisbleCancelBtn" :isCancelBtn="true" @click="cancelBtnClick" class="mx-3" id="cancel-button">{{
       cancelBtnText
     }}</BaseButton>
-    <BaseButton v-if="isVisbleCommitBtn" @click="commitBtnClick" class="mx-3" :color="commitBtnColor">
+    <BaseButton
+      v-if="isVisbleCommitBtn"
+      @click="commitBtnClick"
+      class="mx-3"
+      :color="commitBtnColor"
+      id="commit-button"
+    >
       {{ commitBtnText }}</BaseButton
     >
   </div>

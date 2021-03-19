@@ -4,10 +4,10 @@
       <v-card-title class="title-message">
         <div class="d-flex mx-auto message">
           <v-icon large left> {{ titleIcon }} </v-icon>
-          <span class="mx-4">{{ message }}</span>
+          <span class="mx-4" id="message">{{ message }}</span>
         </div>
       </v-card-title>
-      <BaseButton height="40" :to="{ name: 'signin' }">OK</BaseButton>
+      <BaseButton height="40" :to="{ name: 'signin' }" id="signin">OK</BaseButton>
     </v-card>
   </BaseAccountView>
 </template>

@@ -1,5 +1,5 @@
 <template>
-  <BaseAlert type="error" class="alert" :value="alert" @input="closeAlert">
+  <BaseAlert type="error" class="alert" :value="alert" @input="closeAlert" id="error-alert">
     {{ errorMessage }}
   </BaseAlert>
 </template>

@@ -8,7 +8,7 @@
       <v-card-title class="text-body-1 font-weight-bold">{{ project.name }} </v-card-title>
       <v-card-actions>
         <ProjectSettingDialog v-slot="{ openDialog }" :projectId="projectId">
-          <v-btn text icon :ripple="false" @click.stop="openDialog">
+          <v-btn text icon :ripple="false" @click.stop="openDialog" id="open-project-setting-dialog-navdrawer">
             <v-icon>mdi-cog</v-icon>
           </v-btn>
         </ProjectSettingDialog>
@@ -18,7 +18,7 @@
     <v-divider class="mb-2"></v-divider>
 
     <FolderSettingDialog v-slot="{ openDialog }" :projectId="projectId">
-      <v-btn text block class="add-folder" @click.stop="openDialog">
+      <v-btn text block class="add-folder" @click.stop="openDialog" id="open-folder-create-dialog-navdrawer">
         <v-icon left> mdi-plus </v-icon> フォルダ新規作成
       </v-btn>
     </FolderSettingDialog>
@@ -26,7 +26,11 @@
     <v-card flat tile class="items">
       <v-list color="#00f9d4">
         <v-list-item-group>
-          <v-list-item :ripple="false" :to="{ name: 'AllNoteList', params: { projectId: projectId } }">
+          <v-list-item
+            :ripple="false"
+            :to="{ name: 'AllNoteList', params: { projectId: projectId } }"
+            id="allnotelist-link-navdrawer"
+          >
             <v-list-item-content>
               <v-list-item-title>新着ノート</v-list-item-title>
             </v-list-item-content>

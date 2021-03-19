@@ -15,6 +15,7 @@
             outlined
             :maxlength="nameInfo.maxLength"
             :class="'mx-4 mt-7'"
+            id="project-name"
           ></v-text-field>
         </ValidationProvider>
         <ValidationProvider v-slot="{ errors }" :name="descriptionInfo.label" :rules="descriptionInfo.rules">
@@ -26,6 +27,7 @@
             :maxlength="descriptionInfo.maxLength"
             :class="'mx-4 mt-3'"
             auto-grow
+            id="project-description"
           ></v-textarea>
         </ValidationProvider>
       </FormDialogCard>
@@ -82,9 +84,12 @@ export default {
           return;
         }
 
-        this.$store.dispatch('project/update', Object.assign(this.project, { id: this.projectId })).then(() => {
-          this.dialog = false;
-        });
+        this.$store
+          .dispatch('project/update', Object.assign(this.project, { id: this.projectId }))
+          .then(() => {
+            this.dialog = false;
+          })
+          .catch(() => {});
       });
     },
     clear() {

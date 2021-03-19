@@ -15,8 +15,6 @@ export default {
       let routerPush = null;
 
       if (constants.HTTP_STATUS_FORBIDDEN === status) {
-        // 権限エラーの場合はエラー画面にリダイレクトさせる
-        // TODO: エラー画面作成
         routerPush = vm.$router.replace({ name: 'signin' });
       } else {
         routerPush = vm.$router.replace({ name: 'AllNoteList', params: { projectId: vm.$store.state.project.id } });

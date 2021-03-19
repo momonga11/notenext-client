@@ -4,19 +4,19 @@
       <v-card-subtitle class="pa-1">{{ folderName }}</v-card-subtitle>
       <v-spacer></v-spacer>
       <v-card-actions>
-        <BaseButton depressed class="mr-4" color="green darken-1 white--text">
+        <BaseButton depressed class="mr-4" color="green darken-1 white--text" id="task-set-button">
           <v-icon left> mdi-plus </v-icon>
           タスク設定
         </BaseButton>
         <v-menu offset-y v-model="isOpenMenu">
           <template v-slot:activator="{ on, attrs }">
-            <v-btn text icon :ripple="false" v-bind="attrs" v-on="on" class="mr-4">
+            <v-btn text icon :ripple="false" v-bind="attrs" v-on="on" class="mr-4" id="open-note-menu">
               <v-icon>mdi-cog</v-icon>
             </v-btn>
           </template>
 
           <v-list dense>
-            <v-list-item @click="copyNote">
+            <v-list-item @click="copyNote" id="copy-note">
               <v-list-item-title>コピー</v-list-item-title>
             </v-list-item>
 
@@ -27,7 +27,7 @@
               @open-dialog="changeMenuValue"
               @commit="deleteNote"
             >
-              <v-list-item @click.stop="openDialog">
+              <v-list-item @click.stop="openDialog" id="delete-note">
                 <v-list-item-title>削除</v-list-item-title>
               </v-list-item>
             </ConfirmDeleteDialog>
@@ -43,6 +43,7 @@
           class="text-h6 mb-2"
           @input="inputTitle"
           :error-messages="errors"
+          id="title-note"
         ></CommonTitleField>
       </ValidationProvider>
 
@@ -73,9 +74,6 @@ const taskStatePattern = {
   running: 'running',
 };
 const apiAccessInterVal = 1000;
-const isNullOrEmpty = value => {
-  return !value || value.trim() === '';
-};
 
 export default {
   components: {
@@ -98,6 +96,7 @@ export default {
       runTaskStates: [], // {noteId , state, taskId}
       editorUnderSpaceHeight: '205px',
       isOpenMenu: false,
+      isInitialized: false,
     };
   },
   props: {
@@ -148,7 +147,16 @@ export default {
             folderId: data.folder_id, // プロパティのフォルダIDはURLによっては取得できないので、APIから取得した値を設定する
           });
 
+          this.isInitialized = true;
           this.setHtmlToEditor(htmltext);
+
+          // safariの場合、Editorにフォーカスが当たっていると、キャレットがおかしなところについてしまう問題があった。
+          // そのため別のところにフォーカスをあてて、外す暫定処置を実装する
+          const elemTitle = document.getElementById('title-note');
+          if (elemTitle) {
+            document.getElementById('title-note').focus();
+            document.getElementById('title-note').blur();
+          }
         });
     },
     inputTitle(value) {
@@ -156,20 +164,15 @@ export default {
       this.updateNote();
     },
     changeEditor(htmltext, text) {
-      // 更新対象の値が同じ場合は更新しない
-      // また初期化時の場合を考慮し、更新前後の値が空である場合も更新しない（スペースは削る）
-      if (
-        (isNullOrEmpty(this.note.htmltext) &&
-          isNullOrEmpty(htmltext) &&
-          isNullOrEmpty(this.note.text) &&
-          isNullOrEmpty(text)) ||
-        (this.note.htmltext === htmltext && this.note.text === text)
-      ) {
+      // 初期化時は処理しない
+      if (this.isInitialized) {
+        this.isInitialized = false;
         return;
       }
 
       this.note.htmltext = htmltext;
       this.note.text = text;
+
       this.updateNote();
     },
     async validateTitle() {
@@ -261,18 +264,25 @@ export default {
               this.$router.push({ name: 'AllNoteList' });
               break;
           }
-        });
+        })
+        .catch(() => {});
     },
     copyNote() {
-      this.$store.dispatch('note/copy', this.note).then(response => {
-        this.$router.push({
-          name: this.$router.name,
-          params: { noteId: response.id },
-        });
-      });
+      this.$store
+        .dispatch('note/copy', this.note)
+        .then(response => {
+          this.$router.push({
+            name: this.$router.name,
+            params: { noteId: response.id },
+          });
+        })
+        .catch(() => {});
     },
     setHtmlToEditor(html) {
       this.$refs.editor.setHtmlToEditor(html);
+    },
+    setEditorUnderSpaceHeight() {
+      this.$refs.editor.setEditorUnderSpaceHeight(this.editorUnderSpaceHeight);
     },
     changeMenuValue() {
       this.isOpenMenu = !this.isOpenMenu;
@@ -293,7 +303,8 @@ export default {
             })
             .then(response => {
               callback(response.image_url, '');
-            });
+            })
+            .catch(() => {});
         };
         reader.readAsDataURL(fileOrBlob);
       } else {
@@ -304,7 +315,9 @@ export default {
   },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      // 紐づくタスクがある場合は取得する（紐づくタスクの件数をnoteと一緒に取得しておく）
+      // TODO: 紐づくタスクがある場合は取得する（紐づくタスクの件数をnoteと一緒に取得しておく）
+      // load処理を実行する前に、初期化フラグをtrueにする必要がある（loadが非同期処理のため）
+      vm.isInitialized = true;
       vm.load(vm.projectId, vm.folderId, vm.noteId).catch(error => {
         vm.redirectTop(vm, error.response ? error.response.status : '');
       });
@@ -312,11 +325,17 @@ export default {
   },
   beforeRouteUpdate(to, from, next) {
     if (to.params.noteId !== from.params.noteId) {
-      this.load(to.params.projectId, to.params.folderId, to.params.noteId).then(() => {
-        // TODO 紐づくタスクから高さを設定する
-        this.$refs.editor.setEditorUnderSpaceHeight(this.editorUnderSpaceHeight);
-        next();
-      });
+      this.load(to.params.projectId, to.params.folderId, to.params.noteId)
+        .then(() => {
+          // TODO 紐づくタスクから高さを設定する
+          this.setEditorUnderSpaceHeight(this.editorUnderSpaceHeight);
+          next();
+        })
+        .catch(() => {
+          next(false);
+        });
+    } else {
+      next();
     }
   },
 };

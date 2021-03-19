@@ -5,16 +5,19 @@
     @commit-btn-click="submit"
     :height="465"
   >
-    <CommonUserNameField v-model="auth.name" :fieldClass="'mb-2'"></CommonUserNameField>
-    <CommonEmailField v-model="auth.email" :fieldClass="'mb-2'"></CommonEmailField>
+    <CommonUserNameField v-model="auth.name" :fieldClass="'mb-2'" id="user-name-signup"></CommonUserNameField>
+    <CommonEmailField v-model="auth.email" :fieldClass="'mb-2'" id="email-signup"></CommonEmailField>
     <CommonPasswordField
       :name="passwordInfo.label"
       v-model="auth.password"
       :label="passwordInfo.label"
       :fieldClass="'mb-2'"
+      id="password-signup"
     ></CommonPasswordField>
     <template v-slot:bottom-items>
-      <BaseLinkButton :to="{ name: 'signin' }" class="mt-5">すでにアカウントをお持ちの方はこちら</BaseLinkButton>
+      <BaseLinkButton :to="{ name: 'signin' }" class="mt-5" id="signin-link"
+        >すでにアカウントをお持ちの方はこちら</BaseLinkButton
+      >
     </template>
   </CommonAuthPage>
 </template>
@@ -53,9 +56,12 @@ export default {
           return;
         }
         // サインアップ処理
-        this.$store.dispatch('auth/signup', this.auth).then(() => {
-          this.$router.push({ name: 'info', params: { message: message.INFO_MAIL_CONFIRMATION } });
-        });
+        this.$store
+          .dispatch('auth/signup', this.auth)
+          .then(() => {
+            this.$router.push({ name: 'info', params: { message: message.INFO_MAIL_CONFIRMATION } });
+          })
+          .catch(() => {});
       });
     },
   },
