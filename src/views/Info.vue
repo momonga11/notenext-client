@@ -28,18 +28,3 @@ export default {
   },
 };
 </script>
-
-<style scoped="scss">
-.container {
-  text-align: center;
-}
-
-.title-message {
-  text-align: left;
-}
-
-.message {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-</style>

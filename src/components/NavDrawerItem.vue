@@ -1,10 +1,17 @@
 <template>
-  <v-navigation-drawer :value="drawer" color="#00f9d4" floating app style="z-index: 1" @input="$emit('input', $event)">
+  <v-navigation-drawer
+    :value="drawer"
+    color="secondary"
+    floating
+    app
+    style="z-index: 1"
+    @input="$emit('input', $event)"
+  >
     <v-card flat tile height="64px" color="primary" class="overflow-hidden">
       <img class="main-logo ma-4" alt="notenext_logo" src="../assets/logo.png" />
     </v-card>
 
-    <v-card flat tile color="#00f9d4" class="d-flex justify-space-between">
+    <v-card flat tile color="secondary" class="d-flex justify-space-between">
       <v-card-title class="text-body-1 font-weight-bold">{{ project.name }} </v-card-title>
       <v-card-actions>
         <ProjectSettingDialog v-slot="{ openDialog }" :projectId="projectId">
@@ -24,7 +31,7 @@
     </FolderSettingDialog>
 
     <v-card flat tile class="items">
-      <v-list color="#00f9d4">
+      <v-list color="secondary">
         <v-list-item-group>
           <v-list-item
             :ripple="false"

@@ -81,26 +81,6 @@ describe('ProjectSettingDialog.vue', () => {
     expect(wrapper.vm.project.description).toBe('');
     expect(wrapper.vm.dialog).toBeFalsy();
   });
-  // it('ダイヤログの外側が押下されたとき、ダイアログを閉じる', async () => {
-  //   wrapper = mount(ProjectSettingDialog, {
-  //     propsData: { projectId: 1 },
-  //     store,
-  //   });
-
-  //   wrapper.vm.openDialog();
-  //   await flushPromises();
-
-  //   try {
-  //     await wrapper
-  //       .findAll('div')
-  //       .at(0)
-  //       .trigger('keydown.down');
-  //     await flushPromises();
-  //     expect(wrapper.vm.dialog).toBeFalsy();
-  //   } finally {
-  //     wrapper.destroy();
-  //   }
-  // });
 
   describe('mount後のDOM検証', () => {
     beforeEach(async () => {

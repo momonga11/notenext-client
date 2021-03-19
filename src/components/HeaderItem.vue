@@ -2,30 +2,21 @@
   <v-app-bar app flat color="primary">
     <ErrorMessageItem v-show="hasError" :alert="hasError"></ErrorMessageItem>
     <v-app-bar-nav-icon @click.stop="drawer"></v-app-bar-nav-icon>
-    <v-card flat class="d-flex ml-2" width="250px" color="primary">
-      <v-tabs
-        v-model="activeTab"
-        background-color="primary"
-        color="success"
-        hide-slider
-        height="64px"
-        grow
-        icons-and-text
-      >
-        <keep-alive>
-          <v-tab active-class="tab-selected" key="note" @change="changeNoteTab" id="note-tab-header">
-            ノート
-            <v-icon>mdi-note-multiple</v-icon></v-tab
-          >
-        </keep-alive>
-        <keep-alive>
-          <v-tab active-class="tab-selected" key="task"
-            >タスク
-            <v-icon>mdi-checkbox-multiple-marked-circle</v-icon>
-          </v-tab>
-        </keep-alive>
-      </v-tabs>
-    </v-card>
+    <v-tabs v-model="activeTab" background-color="primary" hide-slider icons-and-text>
+      <keep-alive>
+        <v-tab active-class="tab-selected" key="note" @change="changeNoteTab" id="note-tab-header">
+          ノート
+          <v-icon>mdi-note-multiple</v-icon></v-tab
+        >
+      </keep-alive>
+      <keep-alive>
+        <v-tab active-class="tab-selected" key="task"
+          >タスク
+          <v-icon>mdi-checkbox-multiple-marked-circle</v-icon>
+        </v-tab>
+      </keep-alive>
+    </v-tabs>
+
     <v-spacer></v-spacer>
     <v-menu offset-y v-model="menuValue">
       <template v-slot:activator="{ on, attrs }">
@@ -48,7 +39,6 @@
 </template>
 
 <script>
-// import UserSettingDialog from '@/components/UserSettingDialog.vue';
 import ErrorMessageItem from '@/components/ErrorMessageItem.vue';
 import { mapState } from 'vuex';
 import defaultAvatar from '@/assets/no_image.png';
@@ -57,7 +47,6 @@ const tabkeys = { note: 'note', task: 'task' };
 
 export default {
   components: {
-    // UserSettingDialog,
     ErrorMessageItem,
   },
   data() {
@@ -91,10 +80,7 @@ export default {
     signout() {
       this.$store
         .dispatch('auth/signout')
-        .then(() => {
-          // TODO: ここ移動しなくてもいい気がする
-          // this.$router.push({ name: 'signin' });
-        })
+        .then(() => {})
         .catch(() => {});
     },
   },
@@ -111,31 +97,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.header {
-  width: 100%;
-  height: 70px;
-  background-color: #4ee097;
-  display: flex;
-}
-
-.nav {
-  flex-grow: 2;
-  display: inherit;
-  justify-content: space-between;
-}
-
-.main-nav {
-  margin-left: 5rem;
-  display: flex;
-  list-style: none;
-  -webkit-transition: transform 0.3s ease-in-out;
-  transition: transform 0.3s ease-in-out;
-}
-
-.not-active-side-ber {
-  transform: translateX(80px);
-}
-
 .tab-selected {
   background-color: #0aaf5d;
 }

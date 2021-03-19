@@ -1,25 +1,6 @@
 import axios from 'axios';
 
-// TODO: 環境変数からとる
 axios.defaults.baseURL = process.env.VUE_APP_API_URL;
-
-// axios.interceptors.request.use(
-//   config => {
-//     if (this.state.auth['access-token']) {
-//       config.headers.client = this.state.auth.client;
-//       config.headers['access-token'] = this.state.auth['access-token'];
-//       config.headers.expiry = this.state.auth.expiry;
-//       config.headers['token-type'] = this.state.auth['token-type'];
-//       config.headers.uid = this.state.auth.uid;
-//     }
-
-//     config.timeout = process.env.VUE_APP_API_TIMEOUT;
-//     return config;
-//   },
-//   error => {
-//     return Promise.reject(error);
-//   }
-// );
 
 export default {
   namespaced: true,
@@ -82,56 +63,21 @@ export default {
         });
     },
 
-    // async request({ rootState }, options) {
-    //   const headers = {};
-    //   headers['Content-Type'] = 'application/json';
-    //   if (rootState.auth['access-token']) {
-    //     headers.client = rootState.auth.client;
-    //     headers['access-token'] = rootState.auth['access-token'];
-    //     headers.expiry = rootState.auth.expiry;
-    //     headers['token-type'] = rootState.auth['token-type'];
-    //     headers.uid = rootState.auth.uid;
-    //   }
-
-    //   options.headers = headers;
-    //   options.timeout = process.env.VUE_APP_API_TIMEOUT;
-
-    //   return axios(options)
-    //     .then(response => response)
-    //     .catch(error => error);
-    // },
-
-    // async get({ dispatch }, { url, params }) {
-    //   const options = {
-    //     method: 'get',
-    //     url,
-    //     params,
-    //   };
-
-    //   return dispatch('request', options);
-    // },
     async get({ dispatch }, requests) {
       requests.method = 'get';
       return dispatch('request', requests);
-
-      //   const options = {
-      //     url: requests.url,
-      //     params: requests.params,
-      //   };
-
-      //   return axios
-      //     .get(options)
-      //     .then(response => response)
-      //     .catch(error => error);
     },
+
     async post({ dispatch }, requests) {
       requests.method = 'post';
       return dispatch('request', requests);
     },
+
     async put({ dispatch }, requests) {
       requests.method = 'put';
       return dispatch('request', requests);
     },
+
     async delete({ dispatch }, requests) {
       requests.method = 'delete';
       return dispatch('request', requests);

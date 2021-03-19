@@ -45,7 +45,6 @@ import CommonPasswordField from '@/components/CommonPasswordField.vue';
 export default {
   components: {
     FormDialogCard,
-    // BasePassword,
     CommonPasswordField,
   },
   mixins: [passwordInfo],

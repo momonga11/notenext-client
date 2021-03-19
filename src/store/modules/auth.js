@@ -37,34 +37,6 @@ const createParamsState = response => {
 export default {
   namespaced: true,
   state: getDefaultState(),
-  // state: {
-  //   id: 100,
-  //   name: 'user01',
-  //   email: 'example1@example.com',
-  //   avatar: '',
-  //   header: {
-  //     client: 'jUBmtXblcwlcqtFlSh3qQQ',
-  //     accessToken: 'nf0nQZkkSMKyuoaJc8B5pw',
-  //     uid: 'example1@example.com',
-  //     expiry: '1614283493',
-  //     tokenType: 'Bearer',
-  //   },
-  // },
-  // state: {
-  //   id: 10,
-  //   name: 'test3',
-  //   email: 'test3@example.com',
-  //   imageFile: '',
-  //   imageName: '',
-  //   avatar: '',
-  //   header: {
-  //     client: 'qahr-YcuoZKEBH3CglBgfQ',
-  //     accessToken: 'b_CVN_MXMHmsdSrZZYovEA',
-  //     uid: 'test3@example.com',
-  //     expiry: '1614533046',
-  //     tokenType: 'Bearer',
-  //   },
-  // },
   getters: {
     isAuthorized: state => {
       return !!state.header.accessToken;

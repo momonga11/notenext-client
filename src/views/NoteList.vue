@@ -59,7 +59,13 @@
             </button>
           </SortOrderDialog>
           <div class="mr-1">
-            <BaseButton depressed class="green darken-1" :width="140" @click="createNote" id="create-note-notelist">
+            <BaseButton
+              depressed
+              color="green darken-1 white--text"
+              :width="140"
+              @click="createNote"
+              id="create-note-notelist"
+            >
               <v-icon left> mdi-plus </v-icon>
               ノートを作成
             </BaseButton>
@@ -116,6 +122,7 @@ import redirect from '@/mixins/redirect';
 import BaseButton from '@/components/BaseButton.vue';
 import formatDate from '@/mixins/format-date';
 import store from '@/store';
+import message from '@/consts/message';
 
 const getNotes = (_store, projectId, folderId) => {
   return _store.dispatch('note/getNotesByfolderId', { projectId, folderId });
@@ -148,7 +155,7 @@ export default {
   },
   computed: {
     deleteDialogText() {
-      return 'このフォルダを削除します。よろしいですか？';
+      return message.TEXT_DELETE_FOLDER;
     },
     sortItemList() {
       return [
@@ -228,8 +235,6 @@ export default {
       });
   },
   beforeRouteUpdate(to, from, next) {
-    // this.isRouteNote = to.name === noteRouteName;
-
     if (to.params.folderId !== from.params.folderId) {
       getNotes(this.$store, to.params.projectId, to.params.folderId)
         .then(() => {

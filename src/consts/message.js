@@ -25,4 +25,5 @@ export default Object.freeze({
   TEXT_DELETE_ACCOUNT_SUB4: '本当によろしいですか？',
   TEXT_DELETE_ACCOUNT_BUTTON_INFO: 'アカウントを削除します。利用しているプロジェクトは全て削除され復旧はできません。',
   INFO_SUCCESS_DELETE_ACCOUNT: 'アカウントの削除が完了しました。',
+  TEXT_DELETE_FOLDER: 'このフォルダを削除します。よろしいですか？',
 });

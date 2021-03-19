@@ -93,17 +93,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.sort-button {
-  outline: none;
-}
-
-.folder-description {
-  display: -webkit-inline-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
 .items {
   height: calc(100vh - 124px);
   overflow-x: hidden;

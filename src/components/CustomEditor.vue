@@ -72,8 +72,6 @@ export default {
   methods: {
     change() {
       if (!this.isComposing) {
-        // pluginの仕様上、初回ロード時にchangeイベントが呼ばれてしまう模様。
-        // 初回ロードの時とhtmlテキストが変わっている場合のみ、イベントを発火させるようにする。
         this.changeEditor();
       }
     },
