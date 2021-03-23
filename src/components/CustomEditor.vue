@@ -91,10 +91,6 @@ export default {
       const editor = document.querySelector('.te-ww-container .te-editor');
       editor.style.setProperty('--under-height', value);
     },
-    addImageBlob(blob, callback) {
-      console.log(blob);
-      console.log(callback);
-    },
   },
   mounted() {
     // IME変換処理にてchangeイベントを発生させないようにする。
