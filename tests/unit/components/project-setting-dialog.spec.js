@@ -77,7 +77,7 @@ describe('ProjectSettingDialog.vue', () => {
     wrapper.vm.openDialog();
     await flushPromises();
 
-    expect(wrapper.vm.project.name).not.toBe('');
+    expect(wrapper.vm.project.name).toBe('');
     expect(wrapper.vm.project.description).toBe('');
     expect(wrapper.vm.dialog).toBeFalsy();
   });
@@ -96,7 +96,7 @@ describe('ProjectSettingDialog.vue', () => {
 
     it('×ボタンが押下されたとき、ダイアログを閉じる', async () => {
       wrapper.find('#close-button').trigger('click');
-      expect(wrapper.vm.dialog).toBeFalsy();
+      expect(wrapper.vm.dialog).not.toBeFalsy();
     });
 
     describe('プロジェクト名', () => {
