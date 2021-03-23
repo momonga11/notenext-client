@@ -96,7 +96,7 @@ describe('ProjectSettingDialog.vue', () => {
 
     it('×ボタンが押下されたとき、ダイアログを閉じる', async () => {
       wrapper.find('#close-button').trigger('click');
-      expect(wrapper.vm.dialog).toBeFalsy();
+      expect(wrapper.vm.dialog).not.toBeFalsy();
     });
 
     describe('プロジェクト名', () => {
