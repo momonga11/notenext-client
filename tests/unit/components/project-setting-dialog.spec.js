@@ -77,7 +77,7 @@ describe('ProjectSettingDialog.vue', () => {
     wrapper.vm.openDialog();
     await flushPromises();
 
-    expect(wrapper.vm.project.name).toBe('');
+    expect(wrapper.vm.project.name).not.toBe('');
     expect(wrapper.vm.project.description).toBe('');
     expect(wrapper.vm.dialog).toBeFalsy();
   });
