@@ -1,4 +1,5 @@
 import axios from 'axios';
+import constants from '../../consts/constants';
 
 axios.defaults.baseURL = process.env.VUE_APP_API_URL;
 
@@ -33,7 +34,7 @@ export default {
         headers,
         data,
         params,
-        timeout: process.env.VUE_APP_API_TIMEOUT,
+        timeout: constants.API_TIMEOUT,
       };
 
       // ローディングを設定
@@ -45,7 +46,7 @@ export default {
         } else {
           commit('setLoading', true);
         }
-      }, process.env.VUE_APP_API_LOADING_START_TIME);
+      }, constants.API_LOADING_START_TIME);
 
       // リダイレクト中の場合はエラーをクリアしない。
       if (!state.isRedirecting) {

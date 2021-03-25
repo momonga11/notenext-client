@@ -1,6 +1,6 @@
 module.exports = {
   devServer: {
-    port: 8888,
+    port: process.env.VUE_APP_PORT,
   },
   transpileDependencies: ['vuetify'],
   configureWebpack: {
