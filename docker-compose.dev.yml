@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  notenext-client:
+    image: node:14.16.0-alpine
+    command: sh -c "npm install && npm install -g @vue/cli && npm run serve"
+    ports:
+      - '8888:8888'
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    environment:
+      VUE_APP_API_URL: 'http://localhost:3000/v1'
+      VUE_APP_PORT: 8888

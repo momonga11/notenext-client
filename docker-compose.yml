@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  notenext-client:
+    build: .
+    container_name: notenext-client
+    ports:
+      - '9000:80'
