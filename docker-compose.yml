@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  notenext-client:
+  front:
     build: .
     container_name: notenext-client
     ports:
