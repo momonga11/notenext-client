@@ -5,7 +5,7 @@ COPY package.json .
 COPY package-lock.json .
 RUN npm install
 COPY . .
-ENV VUE_APP_API_URL 'http://localhost:3000/v1'
+ENV VUE_APP_API_URL 'http://localhost:9001/v1'
 RUN npm run build
 
 # サーバー環境
