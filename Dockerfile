@@ -3,7 +3,7 @@ FROM node:14.16.0-alpine as build-stage
 WORKDIR /app
 COPY package.json .
 COPY package-lock.json .
-RUN npm install
+RUN npm ci
 COPY . .
 ENV VUE_APP_API_URL 'http://localhost:9001/v1'
 RUN npm run build
