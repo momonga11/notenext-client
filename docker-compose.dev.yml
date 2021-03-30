@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  front:
+  web:
     image: node:14.16.0-alpine
     command: sh -c "npm install && npm install -g @vue/cli && npm run serve"
     ports:
