@@ -6,7 +6,7 @@
 export default {};
 </script>
 
-<style>
+<style lang="scss" scoped>
 .circular {
   width: 100px;
   height: 100px;

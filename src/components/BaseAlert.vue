@@ -20,8 +20,9 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss" scoped>
 .alert {
   position: absolute !important;
+  z-index: 200;
 }
 </style>

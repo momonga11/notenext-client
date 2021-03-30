@@ -51,8 +51,8 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss" scoped>
 .base-btn--radius {
-  border-radius: 10px;
+  border-radius: 4px;
 }
 </style>
