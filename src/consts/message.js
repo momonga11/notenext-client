@@ -1,5 +1,5 @@
 export default Object.freeze({
-  NETWORK_ERROR: 'インターネットに接続できません',
+  NETWORK_ERROR: 'インターネットが混雑しています。ネットワークの状態をお確かめの上、再度実行してください。',
   UNKNOWN_ERROR:
     '原因不明のエラーが発生しました。再度実行し、それでも解決しない場合は、お手数ですが以下の宛先までご連絡ください',
   ACCOUNT_CONFIRMATION_TRUE:
