@@ -95,12 +95,14 @@ export default {
         const saveFunction = this.id ? this.updateFolder() : this.createFolder();
         saveFunction
           .then(() => {
-            this.dialog = false;
+            this.clear();
           })
           .catch(() => {});
       });
     },
     clear() {
+      this.folder.name = '';
+      this.folder.description = '';
       this.dialog = false;
     },
     openDialog() {

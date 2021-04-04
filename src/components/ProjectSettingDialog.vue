@@ -93,6 +93,8 @@ export default {
       });
     },
     clear() {
+      this.project.name = '';
+      this.project.description = '';
       this.dialog = false;
     },
     openDialog() {
