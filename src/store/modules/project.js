@@ -1,3 +1,5 @@
+import constants from '@/consts/constants';
+
 const getDefaultState = () => {
   return {
     id: null,
@@ -9,7 +11,7 @@ const getDefaultState = () => {
 
 const getTemporaryData = () => {
   return {
-    name: 'あなたのプロジェクト',
+    name: constants.DEFAULT_PROJECT_NAME,
     description: null,
   };
 };
