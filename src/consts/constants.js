@@ -8,4 +8,5 @@ export default Object.freeze({
   MAX_LENGTH_TEXT: 32768,
   API_LOADING_START_TIME: 500,
   API_TIMEOUT: 8000,
+  DEFAULT_PROJECT_NAME: 'あなたのプロジェクト',
 });
