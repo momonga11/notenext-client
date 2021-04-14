@@ -71,6 +71,8 @@ export default {
       });
     },
     signup({ dispatch, commit }, data) {
+      // パラメータにuidを追加する
+      Object.assign(data, { uid: data.email });
       return dispatch('http/post', { url: `/auth/sign_up`, data }, { root: true }).then(response => {
         commit('update', createParamsState(response));
       });
