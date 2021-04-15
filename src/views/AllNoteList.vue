@@ -6,7 +6,7 @@
           <v-card-title class="pa-2">新着ノート</v-card-title>
         </div>
       </v-card>
-      <v-list two-line class="items">
+      <v-list two-line class="items" v-scroll.self="onScroll">
         <v-list-item-group v-model="selectednoteId">
           <template v-for="note in notes">
             <v-list-item
@@ -45,8 +45,9 @@ import { mapState } from 'vuex';
 import formatDate from '@/mixins/format-date';
 import store from '@/store';
 
-const getNotes = (_store, projectId) => {
-  return _store.dispatch('note/getNotesByprojectId', { projectId });
+const defaultPage = 1;
+const getNotes = (_store, projectId, page, shouldOverwrite) => {
+  return _store.dispatch('note/getNotesByprojectId', { projectId, page, shouldOverwrite });
 };
 
 export default {
@@ -59,6 +60,7 @@ export default {
     return {
       menuValue: false,
       selectednoteId: 1,
+      page: defaultPage,
     };
   },
   props: {
@@ -79,9 +81,24 @@ export default {
     folder(folderId) {
       return this.$store.getters['folder/getFolderById'](folderId);
     },
+    onScroll(e) {
+      // 最下部近くにスクロールバーが移動した場合、データを取得する
+      if (e.target.scrollHeight <= Math.ceil(e.target.scrollTop) + e.target.offsetHeight) {
+        getNotes(this.$store, this.projectId, this.page + 1, false)
+          .then(data => {
+            if (data.length) {
+              this.page += 1;
+            }
+          })
+          .catch(() => {});
+      }
+    },
+  },
+  mounted() {
+    this.page = defaultPage;
   },
   beforeRouteEnter(to, from, next) {
-    getNotes(store, to.params.projectId)
+    getNotes(store, to.params.projectId, defaultPage, true)
       .then(() => {
         next();
       })
@@ -94,7 +111,7 @@ export default {
 
 <style scoped lang="scss">
 .items {
-  height: calc(100vh - 124px);
+  height: calc(100vh - 104px);
   overflow-x: hidden;
   overflow-y: auto;
   background-color: inherit;
