@@ -5,8 +5,7 @@ import Vuetify from 'vuetify';
 import AllNoteList from '@/views/AllNoteList.vue';
 import flushPromises from 'flush-promises';
 import routes from '../modules/routes';
-import { ErrorStoreMock } from '../modules/error';
-import mockActionSample from '../modules/mockActionSample';
+import { ErrorStoreMock, rejectError } from '../modules/error';
 
 // jest.mockはdescribeより先に定義しなければならない。
 // jest.mockにて利用する変数はさらにその先に定義する。
@@ -15,8 +14,8 @@ let mockError;
 let mockActionFn;
 
 jest.mock('@/store', () => {
-  const _vuex = require('vuex');
-  return new _vuex.Store({
+  const localVuex = require('vuex'); // eslint-disable-line global-require
+  return new localVuex.Store({
     modules: {
       note: {
         namespaced: true,
@@ -41,7 +40,6 @@ describe('AllNoteList.vue', () => {
   let noteStoreMock;
   let folderStoreMock;
   let vuetify;
-  let newNoteId;
   let noteProjectId;
 
   const localVue = createLocalVue();
@@ -50,7 +48,6 @@ describe('AllNoteList.vue', () => {
   beforeEach(async () => {
     mockError = false;
     noteProjectId = 300;
-    newNoteId = 100;
     mockActionFn = jest.fn();
 
     const stateNote = {
@@ -103,13 +100,16 @@ describe('AllNoteList.vue', () => {
       namespaced: true,
       state: stateNote,
       getters: {
-        getNotesByprojectId: jest.fn().mockImplementation(store => projectId => {
+        getNotesByprojectId: jest.fn().mockImplementation(() => projectId => {
           return stateNote.notes.filter(note => note.project_id === projectId);
         }),
       },
       actions: {
         getNotesByprojectId: jest.fn().mockImplementation(() => {
-          return mockActionSample(wrapper, mockError);
+          if (!mockError) {
+            return Promise.resolve(['success']);
+          }
+          return rejectError(wrapper);
         }),
       },
     };
@@ -123,7 +123,7 @@ describe('AllNoteList.vue', () => {
         ],
       },
       getters: {
-        getFolderById: jest.fn().mockImplementation(state => folderId => {
+        getFolderById: jest.fn().mockImplementation(() => folderId => {
           return folderStoreMock.state.folders.filter(folder => folder.id === folderId)[0];
         }),
       },
@@ -264,6 +264,45 @@ describe('AllNoteList.vue', () => {
       expect(wrapper.vm.$route.params.projectId).toBe(projectStoreMock.state.id);
       expect(wrapper.vm.$route.params.folderId).toBe(target.folder_id);
       expect(wrapper.vm.$route.params.noteId).toBe(target.id);
+    });
+  });
+
+  describe('無限スクロール', () => {
+    it('スクロール位置が最下部に移動すると、API接続し、成功すると内部のページングカウントを増やす', async () => {
+      expect(wrapper.vm.page).toBe(1);
+
+      // スクロール位置とスクロール幅の合計値がスクロール全体の高さと等しくなった場合、最下部と判定される
+      // デフォルトではelementのscrollTopやscrollHeightは0のため、スクロール位置が一番下である状態と等しい。
+      wrapper.find('.v-list').trigger('scroll');
+      await flushPromises();
+
+      expect(wrapper.vm.page).toBe(2);
+      expect(noteStoreMock.actions.getNotesByprojectId).toHaveBeenCalled();
+    });
+
+    it('スクロール位置が最下部に移動すると、API接続し、失敗すると内部のページングカウントを増やさない', async () => {
+      mockError = true;
+      expect(wrapper.vm.page).toBe(1);
+
+      // スクロール位置とスクロール幅の合計値がスクロール全体の高さと等しくなった場合、最下部と判定される
+      // デフォルトではelementのscrollTopやscrollHeightは0のため、スクロール位置が一番下である状態と等しい。
+      wrapper.find('.v-list').trigger('scroll');
+      await flushPromises();
+
+      expect(wrapper.vm.page).toBe(1);
+      expect(noteStoreMock.actions.getNotesByprojectId).toHaveBeenCalled();
+    });
+
+    it('スクロール位置が最下部ではない場合、API接続しない', async () => {
+      // scrollHeightの値を増やせば、スクロールは最下部と判定されなくなる。
+      Object.defineProperty(wrapper.find('.v-list').element, 'scrollHeight', {
+        value: 100,
+      });
+
+      wrapper.find('.v-list').trigger('scroll');
+      await flushPromises();
+
+      expect(noteStoreMock.actions.getNotesByprojectId).not.toHaveBeenCalled();
     });
   });
 });

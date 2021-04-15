@@ -73,7 +73,7 @@
         </div>
       </v-card>
 
-      <v-list two-line class="items">
+      <v-list two-line class="items" v-scroll.self="onScroll">
         <v-list-item-group v-if="notes">
           <template v-for="note in notes">
             <v-list-item
@@ -124,8 +124,9 @@ import formatDate from '@/mixins/format-date';
 import store from '@/store';
 import message from '@/consts/message';
 
-const getNotes = (_store, projectId, folderId) => {
-  return _store.dispatch('note/getNotesByfolderId', { projectId, folderId });
+const defaultPage = 1;
+const getNotes = (_store, projectId, folderId, page, shouldOverwrite) => {
+  return _store.dispatch('note/getNotesByfolderId', { projectId, folderId, page, shouldOverwrite });
 };
 
 export default {
@@ -141,6 +142,7 @@ export default {
   data() {
     return {
       menuValue: false,
+      page: defaultPage,
     };
   },
   props: {
@@ -222,9 +224,21 @@ export default {
     changeMenuValue() {
       this.menuValue = !this.menuValue;
     },
+    onScroll(e) {
+      // 最下部近くにスクロールバーが移動した場合、データを取得する
+      if (e.target.scrollHeight <= Math.ceil(e.target.scrollTop) + e.target.offsetHeight) {
+        getNotes(this.$store, this.projectId, this.folderId, this.page + 1, false)
+          .then(data => {
+            if (data.length) {
+              this.page += 1;
+            }
+          })
+          .catch(() => {});
+      }
+    },
   },
   beforeRouteEnter(to, from, next) {
-    getNotes(store, to.params.projectId, to.params.folderId)
+    getNotes(store, to.params.projectId, to.params.folderId, defaultPage, true)
       .then(() => {
         next();
       })
@@ -236,7 +250,7 @@ export default {
   },
   beforeRouteUpdate(to, from, next) {
     if (to.params.folderId !== from.params.folderId) {
-      getNotes(this.$store, to.params.projectId, to.params.folderId)
+      getNotes(this.$store, to.params.projectId, to.params.folderId, defaultPage, true)
         .then(() => {
           next();
         })
@@ -270,7 +284,7 @@ export default {
 }
 
 .items {
-  height: calc(100vh - 200px);
+  height: calc(100vh - 184px);
   overflow-x: hidden;
   overflow-y: auto;
   background-color: inherit;

@@ -40,6 +40,9 @@ export default {
       const newNotes = state.notes.filter(note => note.id !== id);
       state.notes = newNotes;
     },
+    clear(state) {
+      state.notes = [];
+    },
   },
   actions: {
     get({ commit, dispatch }, { id, projectId, folderId }) {
@@ -61,31 +64,44 @@ export default {
         return response.data;
       });
     },
-    getNotesByprojectId({ commit, dispatch }, { projectId }) {
+    getNotesByprojectId({ commit, dispatch }, { projectId, page, shouldOverwrite }) {
       return dispatch(
         'http/get',
         {
           url: `/projects/${projectId}/notes`,
+          params: { page },
         },
         {
           root: true,
         }
       ).then(response => {
-        commit('updates', response.data);
+        if (shouldOverwrite) {
+          commit('clear');
+        }
+        response.data.forEach(d => {
+          commit('update', d);
+        });
+        return response.data;
       });
     },
-    getNotesByfolderId({ commit, dispatch }, { projectId, folderId }) {
+    getNotesByfolderId({ commit, dispatch }, { projectId, folderId, page, shouldOverwrite }) {
       return dispatch(
         'http/get',
         {
           url: `/projects/${projectId}/folders/${folderId}/notes`,
-          params: { with_association: true },
+          params: { with_association: true, page },
         },
         {
           root: true,
         }
       ).then(response => {
-        commit('updatesByFolderId', response.data);
+        if (shouldOverwrite) {
+          commit('updatesByFolderId', response.data);
+        } else {
+          response.data.notes.forEach(note => {
+            commit('update', note);
+          });
+        }
 
         const { id, name, description, lock_version } = response.data;
         commit('folder/update', { id, name, description, lock_version }, { root: true });
