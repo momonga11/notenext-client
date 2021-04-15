@@ -111,7 +111,7 @@ export default {
 
 <style scoped lang="scss">
 .items {
-  height: calc(100vh - 104px);
+  height: calc(100vh - 111px);
   overflow-x: hidden;
   overflow-y: auto;
   background-color: inherit;
