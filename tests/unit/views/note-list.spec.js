@@ -16,8 +16,8 @@ let mockErrorStatus;
 let mockActionFn;
 
 jest.mock('@/store', () => {
-  const _vuex = require('vuex');
-  return new _vuex.Store({
+  const localVuex = require('vuex'); // eslint-disable-line global-require
+  return new localVuex.Store({
     modules: {
       note: {
         namespaced: true,
@@ -100,13 +100,16 @@ describe('NoteList.vue', () => {
       namespaced: true,
       state: stateNote,
       getters: {
-        getNotesByfolderId: jest.fn().mockImplementation(store => folderId => {
+        getNotesByfolderId: jest.fn().mockImplementation(() => folderId => {
           return stateNote.notes.filter(note => note.folder_id === folderId);
         }),
       },
       actions: {
         getNotesByfolderId: jest.fn().mockImplementation(() => {
-          return mockActionSample(wrapper, mockError);
+          if (!mockError) {
+            return Promise.resolve(['success']);
+          }
+          return rejectError(wrapper);
         }),
         create: jest.fn().mockImplementation(() => {
           if (!mockError) {
@@ -126,7 +129,7 @@ describe('NoteList.vue', () => {
         ],
       },
       getters: {
-        getFolderById: jest.fn().mockImplementation(state => folderId => {
+        getFolderById: jest.fn().mockImplementation(() => folderId => {
           return folderStoreMock.state.folders.filter(folder => folder.id === folderId)[0];
         }),
       },
@@ -426,6 +429,45 @@ describe('NoteList.vue', () => {
       expect(wrapper.vm.$route.params.projectId).toBe(projectStoreMock.state.id);
       expect(wrapper.vm.$route.params.folderId).toBe(target.folder_id);
       expect(wrapper.vm.$route.params.noteId).toBe(target.id);
+    });
+  });
+
+  describe('無限スクロール', () => {
+    it('スクロール位置が最下部に移動すると、API接続し、成功すると内部のページングカウントを増やす', async () => {
+      expect(wrapper.vm.page).toBe(1);
+
+      // スクロール位置とスクロール幅の合計値がスクロール全体の高さと等しくなった場合、最下部と判定される
+      // デフォルトではelementのscrollTopやscrollHeightは0のため、スクロール位置が一番下である状態と等しい。
+      wrapper.find('.v-list').trigger('scroll');
+      await flushPromises();
+
+      expect(wrapper.vm.page).toBe(2);
+      expect(noteStoreMock.actions.getNotesByfolderId).toHaveBeenCalled();
+    });
+
+    it('スクロール位置が最下部に移動すると、API接続し、失敗すると内部のページングカウントを増やさない', async () => {
+      mockError = true;
+      expect(wrapper.vm.page).toBe(1);
+
+      // スクロール位置とスクロール幅の合計値がスクロール全体の高さと等しくなった場合、最下部と判定される
+      // デフォルトではelementのscrollTopやscrollHeightは0のため、スクロール位置が一番下である状態と等しい。
+      wrapper.find('.v-list').trigger('scroll');
+      await flushPromises();
+
+      expect(wrapper.vm.page).toBe(1);
+      expect(noteStoreMock.actions.getNotesByfolderId).toHaveBeenCalled();
+    });
+
+    it('スクロール位置が最下部ではない場合、API接続しない', async () => {
+      // scrollHeightの値を増やせば、スクロールは最下部と判定されなくなる。
+      Object.defineProperty(wrapper.find('.v-list').element, 'scrollHeight', {
+        value: 100,
+      });
+
+      wrapper.find('.v-list').trigger('scroll');
+      await flushPromises();
+
+      expect(noteStoreMock.actions.getNotesByfolderId).not.toHaveBeenCalled();
     });
   });
 });
