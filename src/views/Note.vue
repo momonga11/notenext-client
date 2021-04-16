@@ -209,15 +209,8 @@ export default {
           )
         );
       } else if (runTask.state === taskStatePattern.running) {
-        // TODO setIntervalでrunTaskが排除されるのを待つようにするかどうか。
-        Object.assign(
-          runTask,
-          this.createTask(
-            paramId,
-            taskStatePattern.scheduled,
-            setTimeout(this.update, apiAccessInterVal, { ...this.note })
-          )
-        );
+        // 時間を置いて再度このメソッドを実行する
+        setTimeout(this.updateNote, apiAccessInterVal);
       } else if (runTask.state === taskStatePattern.scheduled) {
         clearTimeout(runTask.taskId);
         runTask.taskId = setTimeout(this.update, apiAccessInterVal, { ...this.note });
@@ -234,8 +227,8 @@ export default {
       // API呼び出し
       this.$store
         .dispatch('note/update', Object.assign(note, { projectId: this.projectId, folderId: note.folderId }))
-        .then(() => {
-          // TODO finallyで実装する
+        .finally(() => {
+          // 成功失敗にかかわらず後処理を実行する
           if (runTask && runTask.state === taskStatePattern.running) {
             // 不要になったタスクを取り除く。
             const newRunTaskStates = this.runTaskStates.filter(rts => rts.noteId !== note.id);
@@ -251,7 +244,6 @@ export default {
           folderId: this.folderId,
         })
         .then(() => {
-          // TODO 同じフォルダのノートの先頭、もしくはフォルダに移動
           // 自分のrootがどこかによって移動先が変わる。
           switch (this.$route.name) {
             case 'NoteInFolder':
