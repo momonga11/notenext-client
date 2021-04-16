@@ -79,7 +79,7 @@ describe('Note.vue', () => {
       namespaced: true,
       state: stateNote,
       getters: {
-        getNotesByfolderId: jest.fn().mockImplementation(store => folderId => {
+        getNotesByfolderId: jest.fn().mockImplementation(() => folderId => {
           return stateNote.notes.filter(note => note.folder_id === folderId);
         }),
       },
@@ -124,7 +124,7 @@ describe('Note.vue', () => {
         ],
       },
       getters: {
-        getFolderById: jest.fn().mockImplementation(state => folderId => {
+        getFolderById: jest.fn().mockImplementation(() => folderId => {
           return folderStoreMock.state.folders.filter(folder => folder.id === folderId)[0];
         }),
       },
@@ -432,6 +432,11 @@ describe('Note.vue', () => {
 
       // 待機しているsetTimeOutを実行させる
       jest.runOnlyPendingTimers();
+      await flushPromises();
+
+      // 非同期の中で非同期処理を2つ実行しているため、再度setTimeOutを実行させる
+      jest.runOnlyPendingTimers();
+      await flushPromises();
 
       expect(wrapper.find('.v-messages__message').exists()).toBeFalsy();
       expect(noteStoreMock.actions.update).toHaveBeenCalledTimes(2);
@@ -448,7 +453,7 @@ describe('Note.vue', () => {
     });
   });
 
-  describe('テキスト入力を', () => {
+  describe('テキスト入力', () => {
     let targetNote;
     beforeEach(async () => {
       targetNote = noteStoreMock.state.notes[noteIdForGetAction];
@@ -506,6 +511,11 @@ describe('Note.vue', () => {
 
       // 待機しているsetTimeOutを実行させる
       jest.runOnlyPendingTimers();
+      await flushPromises();
+
+      // 非同期の中で非同期処理を2つ実行しているため、再度setTimeOutを実行させる
+      jest.runOnlyPendingTimers();
+      await flushPromises();
 
       expect(wrapper.find('.error--text').text()).toBeFalsy();
       expect(noteStoreMock.actions.update).toHaveBeenCalledTimes(2);
