@@ -2,11 +2,16 @@ export default {
   namespaced: true,
   state: {
     folders: [],
+    foldersAction: [], // 実行したソートの順番を記録するための変数 { id:1, sortItem:'updated_at', sortOrder:'asc' }
   },
   getters: {
     getFolderById: state => folderId => {
       const parsedId = Number(folderId);
       return state.folders.find(folder => folder.id === parsedId);
+    },
+    getFolderActionById: state => folderId => {
+      const parsedId = Number(folderId);
+      return state.foldersAction.find(folder => folder.id === parsedId);
     },
   },
   mutations: {
@@ -28,6 +33,21 @@ export default {
     delete(state, id) {
       const newFolders = state.folders.filter(folder => folder.id !== id);
       state.folders = newFolders;
+
+      const newFoldersAction = state.foldersAction.filter(folder => folder.id !== id);
+      state.foldersAction = newFoldersAction;
+    },
+    clear(state) {
+      state.folders = [];
+      state.foldersAction = [];
+    },
+    setFolderAction(state, payload) {
+      const folderAction = this.getters['folder/getFolderActionById'](payload.id);
+      if (folderAction) {
+        Object.assign(folderAction, payload);
+      } else {
+        state.foldersAction.push(payload);
+      }
     },
   },
   actions: {

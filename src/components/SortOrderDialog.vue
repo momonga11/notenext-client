@@ -15,6 +15,7 @@
                 :label="item.label"
                 :value="item.value"
                 color="primary"
+                :id="`sort-item-${i}`"
               ></v-radio>
             </v-radio-group>
           </v-col>
@@ -26,6 +27,7 @@
                 :label="item.label"
                 :value="item.value"
                 color="primary"
+                :id="`sort-order-${i}`"
               ></v-radio> </v-radio-group
           ></v-col>
         </v-row>
@@ -90,11 +92,10 @@ export default {
       this.dialog = false;
     },
     commitBtnClick() {
-      // this.$emit('commit-btn-click');
+      this.$emit('commit-btn-click', this.selectedSortItem, this.selectedSortOrder);
       this.close();
     },
     cancelBtnClick() {
-      // this.$emit('cancel-btn-click');
       this.close();
     },
   },
