@@ -84,12 +84,14 @@ export default {
         return response.data;
       });
     },
-    getNotesByfolderId({ commit, dispatch }, { projectId, folderId, page, shouldOverwrite }) {
+    getNotesByfolderId({ commit, dispatch }, { projectId, folderId, page, shouldOverwrite, sortItem, sortOrder }) {
+      const sort = `${sortItem}:${sortOrder}`;
+
       return dispatch(
         'http/get',
         {
           url: `/projects/${projectId}/folders/${folderId}/notes`,
-          params: { with_association: true, page },
+          params: { with_association: true, page, sort },
         },
         {
           root: true,

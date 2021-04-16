@@ -45,16 +45,25 @@
         <div class="d-flex justify-space-between mb-1">
           <SortOrderDialog
             v-slot="{ on, attrs }"
-            sortItem="lastUpdateDate"
-            sortOrder="ascending"
+            :sortItem="sortedInfo.value"
+            :sortOrder="sortedInfo.order"
             :sortItemList="sortItemList"
             :sortOrderList="sortOrderList"
             titleText="ノート並び順設定"
+            @commit-btn-click="sortNotes"
           >
             <button class="sort-button" v-bind="attrs" v-on="on">
-              <BaseButton depressed class="ml-1" color="grey lighten-4" :width="120" fontWeight="font-weight-medium">
-                更新日順
-                <v-icon right> mdi-chevron-down </v-icon>
+              <BaseButton
+                depressed
+                class="ml-1"
+                color="grey lighten-4"
+                :width="120"
+                fontWeight="font-weight-medium"
+                id="sort-note-list"
+              >
+                {{ `${sortedInfo.label}順` }}
+                <v-icon right v-if="isSortedOrderValueAsc" id="sort-icon-down"> mdi-chevron-down </v-icon>
+                <v-icon right v-else id="sort-icon-up"> mdi-chevron-up </v-icon>
               </BaseButton>
             </button>
           </SortOrderDialog>
@@ -95,7 +104,16 @@
                   </v-avatar> -->
                 <!-- <v-list-item-subtitle v-text="note.author.name"></v-list-item-subtitle> -->
                 <!-- <div style="text-align: right"> -->
-                <v-list-item-subtitle class="mt-3 ml-1" v-text="formatDate(note.updated_at)"></v-list-item-subtitle>
+                <v-list-item-subtitle
+                  class="mt-3 ml-1"
+                  v-if="isSortedCreatedAt"
+                  v-text="formatDate(note.created_at)"
+                ></v-list-item-subtitle>
+                <v-list-item-subtitle
+                  class="mt-3 ml-1"
+                  v-else
+                  v-text="formatDate(note.updated_at)"
+                ></v-list-item-subtitle>
                 <!-- </div> -->
                 <!-- </div> -->
               </v-list-item-content>
@@ -121,12 +139,46 @@ import NoSelectNote from '@/components/NoSelectNote.vue';
 import redirect from '@/mixins/redirect';
 import BaseButton from '@/components/BaseButton.vue';
 import formatDate from '@/mixins/format-date';
+import {
+  defaultSortItem,
+  sortItemList,
+  sortOrderList,
+  defaultSortValue,
+  defaultSortOrder,
+  sortOrderValueAsc,
+  sortItemCreatedAt,
+} from '@/mixins/inputInfo/note-sort-info';
 import store from '@/store';
 import message from '@/consts/message';
 
 const defaultPage = 1;
-const getNotes = (_store, projectId, folderId, page, shouldOverwrite) => {
-  return _store.dispatch('note/getNotesByfolderId', { projectId, folderId, page, shouldOverwrite });
+
+// Folderに紐づくNoteを取得する。
+const getNotes = (_store, projectId, folderId, page, shouldOverwrite, sortItem, sortOrder) => {
+  let paramSortItem = sortItem;
+  let paramSortOrder = sortOrder;
+
+  if (!sortItem) {
+    // 前回ソートした記録を取得する
+    const folderAction = _store.getters['folder/getFolderActionById'](folderId);
+    if (folderAction) {
+      paramSortItem = folderAction.sortItem;
+      paramSortOrder = folderAction.sortOrder;
+    } else {
+      // ソートが指定されておらず、前回ソートした記録もない場合は、デフォルトのソートを指定する
+      paramSortItem = defaultSortValue;
+      paramSortOrder = defaultSortOrder;
+    }
+  }
+
+  return _store.dispatch('note/getNotesByfolderId', {
+    projectId,
+    folderId,
+    page,
+    shouldOverwrite,
+    sortItem: paramSortItem,
+    sortOrder: paramSortOrder,
+  });
 };
 
 export default {
@@ -138,7 +190,7 @@ export default {
     BaseButton,
     NoSelectNote,
   },
-  mixins: [redirect, formatDate],
+  mixins: [redirect, formatDate, defaultSortItem, sortItemList, sortOrderList],
   data() {
     return {
       menuValue: false,
@@ -159,38 +211,6 @@ export default {
     deleteDialogText() {
       return message.TEXT_DELETE_FOLDER;
     },
-    sortItemList() {
-      return [
-        {
-          label: '更新日時',
-          value: 'lastUpdateDate',
-        },
-        {
-          label: '作成日',
-          value: 'created_at',
-        },
-        {
-          label: 'タイトル',
-          value: 'noteTitle',
-        },
-        {
-          label: '作成者',
-          value: 'author',
-        },
-      ];
-    },
-    sortOrderList() {
-      return [
-        {
-          label: '昇順',
-          value: 'ascending',
-        },
-        {
-          label: '降順',
-          value: 'descending',
-        },
-      ];
-    },
     folder() {
       return this.$store.getters['folder/getFolderById'](this.folderId);
     },
@@ -199,6 +219,27 @@ export default {
     },
     isRouteNote() {
       return this.$route.name === 'NoteInFolder';
+    },
+    sortedInfo() {
+      // 以前のソートの記録がある場合はその情報を返し、記録がない場合はデフォルトソートの情報を返す
+      const folderAction = this.$store.getters['folder/getFolderActionById'](this.folderId);
+      if (!folderAction) {
+        return this.defaultSortItem;
+      }
+      const sortItem = this.sortItemList.filter(si => si.value === folderAction.sortItem);
+      const sortOrder = this.sortOrderList.filter(si => si.value === folderAction.sortOrder);
+
+      if (!sortItem || !sortOrder) {
+        return this.defaultSortItem;
+      }
+
+      return { label: sortItem[0].label, value: sortItem[0].value, order: sortOrder[0].value };
+    },
+    isSortedOrderValueAsc() {
+      return this.sortedInfo.order === sortOrderValueAsc;
+    },
+    isSortedCreatedAt() {
+      return this.sortedInfo.value === sortItemCreatedAt.value;
     },
   },
   methods: {
@@ -236,6 +277,14 @@ export default {
           .catch(() => {});
       }
     },
+    sortNotes(sortItem, sortOrder) {
+      getNotes(this.$store, this.projectId, this.folderId, defaultPage, true, sortItem, sortOrder)
+        .then(() => {
+          // ソートの記録を保持する
+          this.$store.commit('folder/setFolderAction', { id: this.folderId, sortItem, sortOrder });
+        })
+        .catch(() => {});
+    },
   },
   beforeRouteEnter(to, from, next) {
     getNotes(store, to.params.projectId, to.params.folderId, defaultPage, true)
@@ -249,7 +298,7 @@ export default {
       });
   },
   beforeRouteUpdate(to, from, next) {
-    if (to.params.folderId !== from.params.folderId) {
+    if (Number(to.params.folderId) !== Number(from.params.folderId)) {
       getNotes(this.$store, to.params.projectId, to.params.folderId, defaultPage, true)
         .then(() => {
           next();

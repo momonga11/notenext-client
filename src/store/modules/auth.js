@@ -81,6 +81,7 @@ export default {
       return dispatch('http/delete', { url: `/auth/sign_out` }, { root: true }).then(() => {
         commit('signout');
         commit('project/delete', {}, { root: true });
+        commit('folder/clear', {}, { root: true });
         window.localStorage.removeItem(constants.VUEX_PERSISTED_STATE_KEY);
       });
     },
