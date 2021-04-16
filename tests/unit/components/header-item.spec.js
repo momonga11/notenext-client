@@ -73,13 +73,6 @@ describe('HeaderItem.vue', () => {
     expect(wrapper.emitted()['nav-icon-click']).toBeTruthy();
   });
 
-  it('ノートタブを押下すると、AllNotelistへ遷移する', async () => {
-    wrapper.find('#note-tab-header').trigger('click');
-    await flushPromises();
-
-    expect(wrapper.vm.$route.name).toBe('AllNoteList');
-  });
-
   describe('ユーザー情報メニュー', () => {
     beforeEach(async () => {
       // メニューを開く
