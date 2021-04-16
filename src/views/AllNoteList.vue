@@ -12,7 +12,7 @@
             <v-list-item
               :key="note.id"
               :ripple="false"
-              class="white"
+              class="white item"
               active-class="grey lighten-3"
               :to="{ name: 'Note', params: { projectId: projectId, noteId: note.id, folderId: note.folder_id } }"
             >
@@ -115,5 +115,8 @@ export default {
   overflow-x: hidden;
   overflow-y: auto;
   background-color: inherit;
+}
+.item {
+  margin-bottom: 0.1px;
 }
 </style>
