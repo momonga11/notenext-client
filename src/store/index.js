@@ -15,7 +15,7 @@ Vue.use(Vuex);
 const ls = new SecureLS({ encodingType: 'aes', isCompression: false });
 const persistedstate = createPersistedState({
   key: constants.VUEX_PERSISTED_STATE_KEY,
-  paths: ['auth.header', 'project'],
+  paths: ['auth.header', 'project', 'folder.foldersAction'],
   storage: {
     getItem: key => ls.get(key),
     setItem: (key, value) => ls.set(key, value),

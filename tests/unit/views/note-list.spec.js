@@ -4,6 +4,12 @@ import Vuex from 'vuex';
 import Vuetify from 'vuetify';
 import NoteList from '@/views/NoteList.vue';
 import flushPromises from 'flush-promises';
+import {
+  sortItemUpdatedAt,
+  sortItemCreatedAt,
+  sortItemTitle,
+  sortOrderValueDesc,
+} from '@/mixins/inputInfo/note-sort-info';
 import routes from '../modules/routes';
 import { ErrorStoreMock, rejectError } from '../modules/error';
 import mockActionSample from '../modules/mockActionSample';
@@ -14,6 +20,7 @@ import mockActionSample from '../modules/mockActionSample';
 let mockError;
 let mockErrorStatus;
 let mockActionFn;
+let mockFolderActions;
 
 jest.mock('@/store', () => {
   const localVuex = require('vuex'); // eslint-disable-line global-require
@@ -29,6 +36,14 @@ jest.mock('@/store', () => {
             }
             const error = { response: { status: mockErrorStatus } };
             return Promise.reject(error);
+          }),
+        },
+      },
+      folder: {
+        namespaced: true,
+        getters: {
+          getFolderActionById: jest.fn().mockImplementation(() => folderId => {
+            return mockFolderActions.filter(folder => folder.id === folderId)[0];
           }),
         },
       },
@@ -53,6 +68,7 @@ describe('NoteList.vue', () => {
     mockErrorStatus = 403;
     newNoteId = 100;
     mockActionFn = jest.fn();
+    mockFolderActions = [];
 
     const stateNote = {
       notes: [
@@ -127,10 +143,19 @@ describe('NoteList.vue', () => {
           { id: 1, name: 'test-folder-name', description: 'test-folder-description', lock_version: 0 },
           { id: 2, name: 'test-folder-name2', description: 'test-folder-description2', lock_version: 0 },
         ],
+        foldersAction: mockFolderActions,
       },
       getters: {
         getFolderById: jest.fn().mockImplementation(() => folderId => {
           return folderStoreMock.state.folders.filter(folder => folder.id === folderId)[0];
+        }),
+        getFolderActionById: jest.fn().mockImplementation(() => folderId => {
+          return folderStoreMock.state.foldersAction.filter(folder => folder.id === folderId)[0];
+        }),
+      },
+      mutations: {
+        setFolderAction: jest.fn().mockImplementation(() => {
+          mockActionSample(wrapper, mockError);
         }),
       },
       actions: {
@@ -304,9 +329,58 @@ describe('NoteList.vue', () => {
       expect(wrapper.text()).toMatch('2021/01/12(火) 5:06');
     });
 
+    describe('ソート順', () => {
+      it('デフォルトのソート項目と昇順降順アイコンが表示されること', () => {
+        expect(wrapper.find('#sort-note-list').text()).toBe(`${sortItemUpdatedAt.label}順`);
+        expect(wrapper.find('#sort-icon-down').exists()).toBeTruthy();
+        expect(wrapper.find('#sort-icon-up').exists()).toBeFalsy();
+      });
+
+      it('前回実行したソート順が存在する場合、ソート項目と昇順降順アイコンに前回の値が表示されること', async () => {
+        await mockFolderActions.push({ id: 1, sortItem: sortItemCreatedAt.value, sortOrder: sortOrderValueDesc });
+
+        expect(wrapper.find('#sort-note-list').text()).toBe(`${sortItemCreatedAt.label}順`);
+        expect(wrapper.find('#sort-icon-down').exists()).toBeFalsy();
+        expect(wrapper.find('#sort-icon-up').exists()).toBeTruthy();
+      });
+
+      it('ソート処理を実行すると、ノート取得のAPI呼び出し処理と、前回のソート記録処理が呼ばれること', async () => {
+        wrapper.vm.sortNotes(sortItemCreatedAt.value, sortOrderValueDesc.value);
+        await flushPromises();
+
+        expect(noteStoreMock.actions.getNotesByfolderId).toHaveBeenCalled();
+        expect(folderStoreMock.mutations.setFolderAction).toHaveBeenCalled();
+      });
+
+      it('ソート処理を実行すると、ノート取得のAPI呼び出し処理に失敗した場合、前回のソート記録処理が呼ばれないこと', async () => {
+        mockError = true;
+
+        wrapper.vm.sortNotes(sortItemCreatedAt.value, sortOrderValueDesc.value);
+        await flushPromises();
+
+        expect(noteStoreMock.actions.getNotesByfolderId).toHaveBeenCalled();
+        expect(folderStoreMock.mutations.setFolderAction).not.toHaveBeenCalled();
+      });
+
+      it('ソート項目が作成日時順の場合、リストに表示されるリストがupdated_atからcreated_atに変わること', async () => {
+        await mockFolderActions.push({ id: 1, sortItem: sortItemCreatedAt.value, sortOrder: sortOrderValueDesc });
+
+        expect(wrapper.text()).toMatch('2021/01/01(金) 1:02');
+        expect(wrapper.text()).toMatch('2021/01/11(月) 2:03');
+      });
+
+      it('ソート項目が更新日時順でも作成日時順でもない場合、リストに表示されるリストがupdated_atになること', async () => {
+        await mockFolderActions.push({ id: 1, sortItem: sortItemTitle.value, sortOrder: sortOrderValueDesc });
+
+        expect(wrapper.text()).toMatch('2021/01/02(土) 4:05');
+        expect(wrapper.text()).toMatch('2021/01/12(火) 5:06');
+      });
+    });
+
     describe('フォルダの切り替え', () => {
       beforeEach(async () => {
         await wrapper.setProps({ folderId: folderStoreMock.state.folders[1].id });
+        await mockFolderActions.push({ id: 1, sortItem: sortItemCreatedAt.value, sortOrder: sortOrderValueDesc });
       });
 
       it('storeのフォルダ名が表示されること', () => {
@@ -326,6 +400,36 @@ describe('NoteList.vue', () => {
       it('storeのupdated_atが全件変換されて表示されること', () => {
         expect(wrapper.text()).toMatch('2021/02/02(火) 12:13');
         expect(wrapper.text()).toMatch('2021/02/12(金) 22:23');
+      });
+
+      describe('ソート順', () => {
+        it('デフォルトのソート項目と昇順降順アイコンが表示されること', () => {
+          expect(wrapper.find('#sort-note-list').text()).toBe(`${sortItemUpdatedAt.label}順`);
+          expect(wrapper.find('#sort-icon-down').exists()).toBeTruthy();
+          expect(wrapper.find('#sort-icon-up').exists()).toBeFalsy();
+        });
+
+        it('前回実行したソート順が存在する場合、ソート項目と昇順降順アイコンに前回の値が表示されること', async () => {
+          await mockFolderActions.push({ id: 2, sortItem: sortItemTitle.value, sortOrder: sortOrderValueDesc });
+
+          expect(wrapper.find('#sort-note-list').text()).toBe(`${sortItemTitle.label}順`);
+          expect(wrapper.find('#sort-icon-down').exists()).toBeFalsy();
+          expect(wrapper.find('#sort-icon-up').exists()).toBeTruthy();
+        });
+
+        it('ソート項目が作成日時順の場合、リストに表示されるリストがupdated_atからcreated_atに変わること', async () => {
+          await mockFolderActions.push({ id: 2, sortItem: sortItemCreatedAt.value, sortOrder: sortOrderValueDesc });
+
+          expect(wrapper.text()).toMatch('2021/02/01(月) 11:12');
+          expect(wrapper.text()).toMatch('2021/02/11(木) 21:22');
+        });
+
+        it('ソート項目が更新日時順でも作成日時順でもない場合、リストに表示されるリストがupdated_atになること', async () => {
+          await mockFolderActions.push({ id: 2, sortItem: sortItemTitle.value, sortOrder: sortOrderValueDesc });
+
+          expect(wrapper.text()).toMatch('2021/02/02(火) 12:13');
+          expect(wrapper.text()).toMatch('2021/02/12(金) 22:23');
+        });
       });
     });
   });
