@@ -2,21 +2,6 @@
   <v-app-bar app flat color="primary">
     <ErrorMessageItem v-show="hasError" :alert="hasError"></ErrorMessageItem>
     <v-app-bar-nav-icon @click.stop="drawer"></v-app-bar-nav-icon>
-    <v-tabs v-model="activeTab" background-color="primary" hide-slider icons-and-text>
-      <keep-alive>
-        <v-tab active-class="tab-selected" key="note" @change="changeNoteTab" id="note-tab-header">
-          ノート
-          <v-icon>mdi-note-multiple</v-icon></v-tab
-        >
-      </keep-alive>
-      <keep-alive>
-        <v-tab active-class="tab-selected" key="task"
-          >タスク
-          <v-icon>mdi-checkbox-multiple-marked-circle</v-icon>
-        </v-tab>
-      </keep-alive>
-    </v-tabs>
-
     <v-spacer></v-spacer>
     <v-menu offset-y v-model="menuValue">
       <template v-slot:activator="{ on, attrs }">
@@ -43,8 +28,6 @@ import ErrorMessageItem from '@/components/ErrorMessageItem.vue';
 import { mapState } from 'vuex';
 import defaultAvatar from '@/assets/no_image.png';
 
-const tabkeys = { note: 'note', task: 'task' };
-
 export default {
   components: {
     ErrorMessageItem,
@@ -52,8 +35,6 @@ export default {
   data() {
     return {
       menuValue: false,
-      activeNoteTab: true,
-      activeTab: 'note',
     };
   },
   computed: {
@@ -74,9 +55,6 @@ export default {
     changeMenuValue() {
       this.menuValue = !this.menuValue;
     },
-    changeNoteTab() {
-      this.$router.push({ name: 'AllNoteList', params: { projectId: this.$route.params.projectId } });
-    },
     signout() {
       this.$store
         .dispatch('auth/signout')
@@ -84,20 +62,5 @@ export default {
         .catch(() => {});
     },
   },
-  watch: {
-    $route(to) {
-      if (to.name === 'NoteList') {
-        this.activeTab = tabkeys.note;
-      } else if (to.name === 'TaskList') {
-        this.activeTab = tabkeys.task;
-      }
-    },
-  },
 };
 </script>
-
-<style scoped lang="scss">
-.tab-selected {
-  background-color: #0aaf5d;
-}
-</style>
