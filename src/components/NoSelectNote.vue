@@ -1,7 +1,20 @@
 <template>
-  <h1>ノートを選択してください</h1>
+  <div class="container">
+    <v-alert text color="accent" width="31%" min-width="280px" class="message pa-5" icon="mdi-information-outline"
+      >ノートを選択してください</v-alert
+    >
+  </div>
 </template>
 
-<script>
-export default {};
-</script>
+<style lang="scss" scoped>
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.message {
+  text-align: center;
+}
+</style>
