@@ -125,7 +125,7 @@
     </template>
     <template v-slot:main>
       <router-view v-show="isRouteNote"></router-view>
-      <div v-show="!isRouteNote" id="noselectnote"><NoSelectNote></NoSelectNote></div>
+      <NoSelectNote v-show="!isRouteNote" id="noselectnote"></NoSelectNote>
     </template>
   </CommonNoteList>
 </template>
