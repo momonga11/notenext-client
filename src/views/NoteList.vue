@@ -98,12 +98,6 @@
               <v-list-item-content>
                 <v-list-item-title v-text="note.title" class="pb-2"></v-list-item-title>
                 <v-list-item-subtitle v-text="note.text" class="mt-1 pl-1"></v-list-item-subtitle>
-                <!-- <div class="d-flex align-center justify-space-between mt-3"> -->
-                <!-- <v-avatar size="24">
-                    <v-icon v-text="note.author.avater"></v-icon>
-                  </v-avatar> -->
-                <!-- <v-list-item-subtitle v-text="note.author.name"></v-list-item-subtitle> -->
-                <!-- <div style="text-align: right"> -->
                 <v-list-item-subtitle
                   class="mt-3 ml-1"
                   v-if="isSortedCreatedAt"
@@ -114,8 +108,6 @@
                   v-else
                   v-text="formatDate(note.updated_at)"
                 ></v-list-item-subtitle>
-                <!-- </div> -->
-                <!-- </div> -->
               </v-list-item-content>
             </v-list-item>
             <v-divider :key="`divider-${note.id}`"></v-divider>
