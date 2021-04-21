@@ -112,6 +112,9 @@ export default {
       type: [Number],
       required: true,
     },
+    searchQuery: {
+      type: [String],
+    },
   },
   computed: {
     deleteDialogText() {
@@ -247,13 +250,17 @@ export default {
           // 自分のrootがどこかによって移動先が変わる。
           switch (this.$route.name) {
             case 'NoteInFolder':
-              this.$router.push({ name: 'NoteList', params: { folderId: this.folderId } });
+              this.$router.push({
+                name: 'NoteList',
+                params: { folderId: this.folderId },
+                query: this.$route.query,
+              });
               break;
             case 'Note':
-              this.$router.push({ name: 'AllNoteList' });
+              this.$router.push({ name: 'AllNoteList', query: this.$route.query });
               break;
             default:
-              this.$router.push({ name: 'AllNoteList' });
+              this.$router.push({ name: 'AllNoteList', query: this.$route.query });
               break;
           }
         })
@@ -266,6 +273,7 @@ export default {
           this.$router.push({
             name: this.$router.name,
             params: { noteId: response.id },
+            query: this.$route.query,
           });
         })
         .catch(() => {});

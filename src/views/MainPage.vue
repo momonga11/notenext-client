@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <NavDrawerItem :drawer="drawer" @input="changeDrawer($event)" :projectId="projectId"></NavDrawerItem>
-    <HeaderItem @nav-icon-click="drawer = !drawer"></HeaderItem>
+    <HeaderItem @nav-icon-click="drawer = !drawer" :searchQuery="searchQuery"></HeaderItem>
     <v-main>
       <router-view></router-view>
     </v-main>
@@ -29,6 +29,9 @@ export default {
     projectId: {
       type: [Number],
       required: true,
+    },
+    searchQuery: {
+      type: [String],
     },
   },
   methods: {

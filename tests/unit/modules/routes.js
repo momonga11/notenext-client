@@ -5,20 +5,21 @@ const routes = [
     children: [
       {
         path: '/dashboard/projects/:projectId',
-        props: ({ params }) => ({ projectId: Number(params.projectId) || 0 }),
+        props: ({ params, query }) => ({ projectId: Number(params.projectId) || 0, searchQuery: query.search }),
         children: [
           {
             path: '/dashboard/projects/:projectId/all/notelist',
             name: 'AllNoteList',
-            props: ({ params }) => ({ projectId: Number(params.projectId) || 0 }),
+            props: ({ params, query }) => ({ projectId: Number(params.projectId) || 0, searchQuery: query.search }),
             children: [
               {
                 path: ':noteId',
                 name: 'Note',
-                props: ({ params }) => ({
+                props: ({ params, query }) => ({
                   projectId: Number(params.projectId) || 0,
                   folderId: Number(params.folderId) || 0,
                   noteId: Number(params.noteId) || 0,
+                  searchQuery: query.search,
                 }),
               },
             ],
@@ -26,18 +27,20 @@ const routes = [
           {
             path: '/dashboard/projects/:projectId/folders/:folderId/notelist',
             name: 'NoteList',
-            props: ({ params }) => ({
+            props: ({ params, query }) => ({
               projectId: Number(params.projectId) || 0,
               folderId: Number(params.folderId) || 0,
+              searchQuery: query.search,
             }),
             children: [
               {
                 path: ':noteId',
                 name: 'NoteInFolder',
-                props: ({ params }) => ({
+                props: ({ params, query }) => ({
                   projectId: Number(params.projectId) || params.projectId,
                   folderId: Number(params.folderId) || params.folderId,
                   noteId: Number(params.noteId) || params.noteId,
+                  searchQuery: query.search,
                 }),
               },
             ],

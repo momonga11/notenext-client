@@ -1,14 +1,12 @@
 import Vue from 'vue';
 import Vuetify from 'vuetify';
 import Vuex from 'vuex';
-import VueRouter from 'vue-router';
 import { ValidationObserver, ValidationProvider, extend } from 'vee-validate';
 import * as originalRules from 'vee-validate/dist/rules';
 import 'jest';
 
 Vue.use(Vuetify);
 Vue.use(Vuex);
-Vue.use(VueRouter);
 Vue.config.devtools = false;
 Vue.config.productionTip = false;
 
