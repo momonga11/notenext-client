@@ -32,7 +32,7 @@ jest.mock('@/store', () => {
           getNotesByfolderId: jest.fn().mockImplementation(() => {
             mockActionFn();
             if (!mockError) {
-              return Promise.resolve();
+              return Promise.resolve({ notes: [] });
             }
             const error = { response: { status: mockErrorStatus } };
             return Promise.reject(error);
@@ -188,7 +188,9 @@ describe('NoteList.vue', () => {
 
     const router = new VueRouter({
       routes,
+      mode: 'abstract',
     });
+
     router.push({
       name: 'NoteList',
       params: { projectId: projectStoreMock.state.id, folderId: folderStoreMock.state.folders[0].id },
@@ -220,12 +222,22 @@ describe('NoteList.vue', () => {
     expect(wrapper.props().folderId).toBe(folderId);
   });
 
+  it('renders props.searchQuery when passed', async () => {
+    // Props
+    const searchQuery = 'test';
+    await wrapper.setProps({ searchQuery });
+
+    expect(wrapper.props().searchQuery).toBe(searchQuery);
+  });
+
   describe('beforeRouteEnter', () => {
     let $route;
+    const searchQuery = 'test';
     beforeEach(async () => {
       $route = {
         name: 'NoteList',
         params: { projectId: 3, folderId: 4 },
+        query: { search: searchQuery },
       };
     });
 
@@ -262,20 +274,24 @@ describe('NoteList.vue', () => {
   describe('beforeRouteUpdate', () => {
     let $routeBefore;
     let $routeAfter;
+    let next;
     beforeEach(async () => {
       $routeBefore = {
         name: 'NoteList',
         params: { projectId: 3, folderId: 4 },
+        query: { search: 'test' },
       };
 
       $routeAfter = {
         name: 'NoteList',
         params: { projectId: 3, folderId: 5 },
+        query: { search: 'test' },
       };
+
+      next = jest.fn();
     });
 
     it('route更新時、API接続にてプロジェクト情報を取得できた場合、目的の画面に遷移する', async () => {
-      const next = jest.fn();
       // thisをwrapperに指定する
       NoteList.beforeRouteUpdate.call(wrapper.vm, $routeBefore, $routeAfter, next);
       await flushPromises();
@@ -284,9 +300,9 @@ describe('NoteList.vue', () => {
       expect(next).toHaveBeenCalled();
     });
 
-    it('route更新時、遷移元と遷移先のfolderIdが同一の場合、API接続を実行せず、目的の画面に遷移する', async () => {
+    it('route更新時、遷移元と遷移先のfolderIdが同一、かつqueryも同一の場合、API接続を実行せず、目的の画面に遷移する', async () => {
       $routeAfter.params.folderId = $routeBefore.params.folderId;
-      const next = jest.fn();
+
       // thisをwrapperに指定する
       NoteList.beforeRouteUpdate.call(wrapper.vm, $routeBefore, $routeAfter, next);
       await flushPromises();
@@ -295,9 +311,21 @@ describe('NoteList.vue', () => {
       expect(next).toHaveBeenCalled();
     });
 
+    it('route更新時、遷移元と遷移先のfolderIdが同一、かつqueryが同一ではない場合、API接続を実行し、目的の画面に遷移する', async () => {
+      $routeAfter.params.folderId = $routeBefore.params.folderId;
+      $routeAfter.query.search = 'test-routeafter';
+
+      // thisをwrapperに指定する
+      NoteList.beforeRouteUpdate.call(wrapper.vm, $routeBefore, $routeAfter, next);
+      await flushPromises();
+
+      expect(noteStoreMock.actions.getNotesByfolderId).toHaveBeenCalled();
+      expect(next).toHaveBeenCalled();
+    });
+
     it('route更新時、API接続にてエラーとなった場合、AllNoteList画面に遷移しない', async () => {
       mockError = true;
-      const next = jest.fn();
+
       NoteList.beforeRouteUpdate.call(wrapper.vm, $routeBefore, $routeAfter, next);
       await flushPromises();
 
@@ -468,6 +496,18 @@ describe('NoteList.vue', () => {
         expect(wrapper.vm.$route.name).toBe('AllNoteList');
       });
 
+      it('フォルダ削除が実行された時、delete処理を実行し、画面遷移する(with query.search)', async () => {
+        const searchQuery = 'test';
+        await wrapper.setProps({ searchQuery });
+
+        wrapper.vm.deleteFolder();
+        await flushPromises();
+
+        expect(folderStoreMock.actions.delete).toHaveBeenCalled();
+        expect(wrapper.vm.$route.name).toBe('AllNoteList');
+        expect(wrapper.vm.$route.query.search).toBe(searchQuery);
+      });
+
       it('フォルダ削除のAPIで失敗した時、画面遷移しない', async () => {
         mockError = true;
         wrapper.vm.deleteFolder();
@@ -487,6 +527,19 @@ describe('NoteList.vue', () => {
       expect(noteStoreMock.actions.create).toHaveBeenCalled();
       expect(wrapper.vm.$route.name).toBe('NoteInFolder');
       expect(wrapper.vm.$route.params.noteId).toBe(newNoteId);
+    });
+
+    it('ノート作成ボタンが押下された時、API処理を実行し、画面遷移する(with query.search)', async () => {
+      const searchQuery = 'test';
+      await wrapper.setProps({ searchQuery });
+
+      wrapper.find('#create-note-notelist').trigger('click');
+      await flushPromises();
+
+      expect(noteStoreMock.actions.create).toHaveBeenCalled();
+      expect(wrapper.vm.$route.name).toBe('NoteInFolder');
+      expect(wrapper.vm.$route.params.noteId).toBe(newNoteId);
+      expect(wrapper.vm.$route.query.search).toBe(searchQuery);
     });
 
     it('ノート作成のAPIで失敗した時、画面遷移しない', async () => {
@@ -533,6 +586,21 @@ describe('NoteList.vue', () => {
       expect(wrapper.vm.$route.params.projectId).toBe(projectStoreMock.state.id);
       expect(wrapper.vm.$route.params.folderId).toBe(target.folder_id);
       expect(wrapper.vm.$route.params.noteId).toBe(target.id);
+    });
+
+    it('ノートのリストを押下すると、クエリ文字列が設定されていた場合、クエリ文字列を引き継いでNote画面に遷移すること', async () => {
+      const searchQuery = 'test';
+      await wrapper.vm.$router.push({ query: { search: searchQuery } });
+
+      const target = noteStoreMock.state.notes[1];
+      wrapper.find(`a[href*='notelist/${target.id}']`).trigger('click');
+      await flushPromises();
+
+      expect(wrapper.vm.$route.name).toBe('NoteInFolder');
+      expect(wrapper.vm.$route.params.projectId).toBe(projectStoreMock.state.id);
+      expect(wrapper.vm.$route.params.folderId).toBe(target.folder_id);
+      expect(wrapper.vm.$route.params.noteId).toBe(target.id);
+      expect(wrapper.vm.$route.query.search).toBe(searchQuery);
     });
   });
 

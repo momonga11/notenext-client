@@ -6,12 +6,16 @@ import AllNoteList from '@/views/AllNoteList.vue';
 import flushPromises from 'flush-promises';
 import routes from '../modules/routes';
 import { ErrorStoreMock, rejectError } from '../modules/error';
+import mockActionSample from '../modules/mockActionSample';
 
 // jest.mockはdescribeより先に定義しなければならない。
 // jest.mockにて利用する変数はさらにその先に定義する。
 // またjest.mockのスコープ外の変数を利用する場合は、変数名の先頭にmockをつける必要がある。
 let mockError;
 let mockActionFn;
+let mockGetFoldersExistsNote;
+let mockGetFolders;
+let mockErrorFolderAction;
 
 jest.mock('@/store', () => {
   const localVuex = require('vuex'); // eslint-disable-line global-require
@@ -20,9 +24,28 @@ jest.mock('@/store', () => {
       note: {
         namespaced: true,
         actions: {
-          getNotesByprojectId: jest.fn().mockImplementation(() => {
+          getNotesByProjectId: jest.fn().mockImplementation(() => {
             mockActionFn();
             if (!mockError) {
+              return Promise.resolve();
+            }
+            return Promise.reject(new Error('fail'));
+          }),
+        },
+      },
+      folder: {
+        namespaced: true,
+        actions: {
+          getFoldersExistsNote: jest.fn().mockImplementation(() => {
+            mockGetFoldersExistsNote();
+            if (!mockErrorFolderAction) {
+              return Promise.resolve();
+            }
+            return Promise.reject(new Error('fail'));
+          }),
+          getFolders: jest.fn().mockImplementation(() => {
+            mockGetFolders();
+            if (!mockErrorFolderAction) {
               return Promise.resolve();
             }
             return Promise.reject(new Error('fail'));
@@ -47,8 +70,11 @@ describe('AllNoteList.vue', () => {
 
   beforeEach(async () => {
     mockError = false;
+    mockErrorFolderAction = false;
     noteProjectId = 300;
     mockActionFn = jest.fn();
+    mockGetFoldersExistsNote = jest.fn();
+    mockGetFolders = jest.fn();
 
     const stateNote = {
       notes: [
@@ -100,12 +126,12 @@ describe('AllNoteList.vue', () => {
       namespaced: true,
       state: stateNote,
       getters: {
-        getNotesByprojectId: jest.fn().mockImplementation(() => projectId => {
+        getNotesByProjectId: jest.fn().mockImplementation(() => projectId => {
           return stateNote.notes.filter(note => note.project_id === projectId);
         }),
       },
       actions: {
-        getNotesByprojectId: jest.fn().mockImplementation(() => {
+        getNotesByProjectId: jest.fn().mockImplementation(() => {
           if (!mockError) {
             return Promise.resolve(['success']);
           }
@@ -127,6 +153,14 @@ describe('AllNoteList.vue', () => {
           return folderStoreMock.state.folders.filter(folder => folder.id === folderId)[0];
         }),
       },
+      actions: {
+        getFoldersExistsNote: jest.fn().mockImplementation(() => {
+          return mockActionSample(wrapper, mockErrorFolderAction);
+        }),
+        getFolders: jest.fn().mockImplementation(() => {
+          return mockActionSample(wrapper, mockErrorFolderAction);
+        }),
+      },
     };
 
     projectStoreMock = {
@@ -145,7 +179,9 @@ describe('AllNoteList.vue', () => {
 
     const router = new VueRouter({
       routes,
+      mode: 'abstract',
     });
+
     router.push({
       name: 'AllNoteList',
       params: { projectId: projectStoreMock.state.id },
@@ -169,35 +205,218 @@ describe('AllNoteList.vue', () => {
     expect(wrapper.props().projectId).toBe(projectId);
   });
 
+  it('renders props.searchQuery when passed', async () => {
+    // Props
+    const searchQuery = 'test';
+    await wrapper.setProps({ searchQuery });
+
+    expect(wrapper.props().searchQuery).toBe(searchQuery);
+  });
+
   describe('beforeRouteEnter', () => {
     let $route;
-    beforeEach(async () => {
-      $route = {
-        name: 'AllNoteList',
-        params: { projectId: 3 },
-      };
+    let next;
+
+    beforeEach(() => {
+      next = jest.fn();
     });
 
-    it('初回遷移時、API接続にてプロジェクト情報を取得できた場合、目的の画面に遷移する', async () => {
-      const next = jest.fn();
-      AllNoteList.beforeRouteEnter($route, undefined, next);
-      await flushPromises();
-
-      expect(mockActionFn).toHaveBeenCalled();
-      expect(next).toHaveBeenCalled();
-    });
-
-    it('初回遷移時、API接続にてエラーとなった場合、サインイン画面に遷移する', async () => {
-      mockError = true;
-      let nextRoute = '';
-      const next = jest.fn().mockImplementation(route => {
-        nextRoute = route;
+    describe('not search query', () => {
+      beforeEach(async () => {
+        $route = {
+          name: 'AllNoteList',
+          params: { projectId: 3 },
+          query: { search: '' },
+        };
       });
-      AllNoteList.beforeRouteEnter($route, undefined, next);
-      await flushPromises();
 
-      expect(mockActionFn).toHaveBeenCalled();
-      expect(nextRoute.name).toBe('signin');
+      it('初回遷移時、API接続にてプロジェクト情報を取得できた場合、目的の画面に遷移する', async () => {
+        AllNoteList.beforeRouteEnter($route, undefined, next);
+        await flushPromises();
+
+        expect(mockActionFn).toHaveBeenCalled();
+        expect(mockGetFolders).toHaveBeenCalled();
+        expect(next).toHaveBeenCalled();
+      });
+
+      it('初回遷移時、ノート取得のためのAPI接続にてエラーとなった場合、サインイン画面に遷移する', async () => {
+        mockError = true;
+        let nextRoute = '';
+        next = jest.fn().mockImplementation(route => {
+          nextRoute = route;
+        });
+        AllNoteList.beforeRouteEnter($route, undefined, next);
+        await flushPromises();
+
+        expect(mockActionFn).toHaveBeenCalled();
+        expect(nextRoute.name).toBe('signin');
+      });
+
+      it('初回遷移時、フォルダ取得のためのAPI接続にてエラーとなった場合、サインイン画面に遷移する', async () => {
+        mockErrorFolderAction = true;
+        let nextRoute = '';
+        next = jest.fn().mockImplementation(route => {
+          nextRoute = route;
+        });
+        AllNoteList.beforeRouteEnter($route, undefined, next);
+        await flushPromises();
+
+        expect(mockGetFolders).toHaveBeenCalled();
+        expect(nextRoute.name).toBe('signin');
+      });
+    });
+
+    describe('with search query', () => {
+      beforeEach(async () => {
+        $route = {
+          name: 'AllNoteList',
+          params: { projectId: 3 },
+          query: { search: 'test' },
+        };
+      });
+
+      it('HaveBeenCallded getFoldersExistsNote', async () => {
+        AllNoteList.beforeRouteEnter($route, undefined, next);
+        await flushPromises();
+
+        expect(mockActionFn).toHaveBeenCalled();
+        expect(mockGetFoldersExistsNote).toHaveBeenCalled();
+        expect(next).toHaveBeenCalled();
+      });
+
+      it('初回遷移時、フォルダ取得のためのAPI接続にてエラーとなった場合、サインイン画面に遷移する', async () => {
+        mockErrorFolderAction = true;
+        let nextRoute = '';
+        next = jest.fn().mockImplementation(route => {
+          nextRoute = route;
+        });
+        AllNoteList.beforeRouteEnter($route, undefined, next);
+        await flushPromises();
+
+        expect(mockGetFoldersExistsNote).toHaveBeenCalled();
+        expect(nextRoute.name).toBe('signin');
+      });
+    });
+  });
+
+  describe('beforeRouteUpdate', () => {
+    let $routeBefore;
+    let $routeAfter;
+    let next;
+
+    describe('not search query', () => {
+      const setRoute = name => {
+        return {
+          name,
+          params: { projectId: 3 },
+          query: { search: '' },
+        };
+      };
+
+      beforeEach(async () => {
+        // routeのtoとfromのnameが異なる場合（API接続あり）
+        $routeBefore = setRoute('NoteList');
+        $routeAfter = setRoute('AllNoteList');
+        next = jest.fn();
+      });
+
+      it('route更新時、API接続にてプロジェクト情報を取得できた場合、目的の画面に遷移する', async () => {
+        AllNoteList.beforeRouteUpdate.call(wrapper.vm, $routeAfter, $routeBefore, next);
+        await flushPromises();
+
+        expect(noteStoreMock.actions.getNotesByProjectId).toHaveBeenCalled();
+        expect(folderStoreMock.actions.getFolders).toHaveBeenCalled();
+        expect(next).toHaveBeenCalled();
+      });
+
+      describe('APIエラー', () => {
+        beforeEach(() => {
+          wrapper.vm.$router.push({ name: 'NoteList' });
+        });
+
+        it('route更新時、ノート取得のAPI接続にてエラーとなった場合、afterに遷移しない', async () => {
+          mockError = true;
+          AllNoteList.beforeRouteUpdate.call(wrapper.vm, $routeAfter, $routeBefore, next);
+          await flushPromises();
+
+          expect(next).toHaveBeenCalled();
+          expect(wrapper.vm.$route.name).toBe('NoteList');
+        });
+
+        it('route更新時、フォルダ取得のAPI接続にてエラーとなった場合、afterに遷移しない', async () => {
+          mockErrorFolderAction = true;
+          AllNoteList.beforeRouteUpdate.call(wrapper.vm, $routeAfter, $routeBefore, next);
+          await flushPromises();
+
+          expect(next).toHaveBeenCalled();
+          expect(wrapper.vm.$route.name).toBe('NoteList');
+        });
+      });
+
+      it('route更新時、AllNoteListから異なるroute:nameに遷移した場合、API接続を実行せず、目的の画面に遷移する', async () => {
+        $routeBefore = setRoute('AllNoteList');
+        $routeAfter = setRoute('Note');
+
+        AllNoteList.beforeRouteUpdate.call(wrapper.vm, $routeAfter, $routeBefore, next);
+        await flushPromises();
+
+        expect(noteStoreMock.actions.getNotesByProjectId).not.toHaveBeenCalled();
+        expect(folderStoreMock.actions.getFolders).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalled();
+      });
+
+      it('route更新時、route:nameとroute:queryが同一の場合、API接続を実行せず、目的の画面に遷移する', async () => {
+        $routeBefore = setRoute('AllNoteList');
+        $routeAfter = setRoute('AllNoteList');
+
+        AllNoteList.beforeRouteUpdate.call(wrapper.vm, $routeAfter, $routeBefore, next);
+        await flushPromises();
+
+        expect(noteStoreMock.actions.getNotesByProjectId).not.toHaveBeenCalled();
+        expect(folderStoreMock.actions.getFolders).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalled();
+      });
+    });
+
+    describe('with search query', () => {
+      const setRoute = name => {
+        return {
+          name,
+          params: { projectId: 3 },
+          query: { search: 'test' },
+        };
+      };
+
+      beforeEach(async () => {
+        // routeのtoとfromのnameが異なる場合（API接続あり）
+        $routeBefore = setRoute('NoteList');
+        $routeAfter = setRoute('AllNoteList');
+        next = jest.fn();
+      });
+
+      it('HaveBeenCallded getFoldersExistsNote', async () => {
+        AllNoteList.beforeRouteUpdate.call(wrapper.vm, $routeAfter, $routeBefore, next);
+        await flushPromises();
+
+        expect(folderStoreMock.actions.getFoldersExistsNote).toHaveBeenCalled();
+        expect(next).toHaveBeenCalled();
+      });
+
+      describe('APIエラー', () => {
+        beforeEach(() => {
+          wrapper.vm.$router.push({ name: 'NoteList' });
+        });
+
+        it('route更新時、フォルダ取得のAPI接続にてエラーとなった場合、afterに遷移しない', async () => {
+          mockErrorFolderAction = true;
+          AllNoteList.beforeRouteUpdate.call(wrapper.vm, $routeAfter, $routeBefore, next);
+          await flushPromises();
+
+          expect(next).toHaveBeenCalled();
+          expect(folderStoreMock.actions.getFoldersExistsNote).toHaveBeenCalled();
+          expect(wrapper.vm.$route.name).toBe('NoteList');
+        });
+      });
     });
   });
 
@@ -265,6 +484,21 @@ describe('AllNoteList.vue', () => {
       expect(wrapper.vm.$route.params.folderId).toBe(target.folder_id);
       expect(wrapper.vm.$route.params.noteId).toBe(target.id);
     });
+
+    it('ノートのリストを押下すると、クエリ文字列が設定されていた場合、クエリ文字列を引き継いでNote画面に遷移すること', async () => {
+      const searchQuery = 'test';
+      await wrapper.vm.$router.push({ query: { search: 'test' } });
+
+      const target = noteStoreMock.state.notes[1];
+      wrapper.find(`a[href*='notelist/${target.id}']`).trigger('click');
+      await flushPromises();
+
+      expect(wrapper.vm.$route.name).toBe('Note');
+      expect(wrapper.vm.$route.params.projectId).toBe(projectStoreMock.state.id);
+      expect(wrapper.vm.$route.params.folderId).toBe(target.folder_id);
+      expect(wrapper.vm.$route.params.noteId).toBe(target.id);
+      expect(wrapper.vm.$route.query.search).toBe(searchQuery);
+    });
   });
 
   describe('無限スクロール', () => {
@@ -277,7 +511,7 @@ describe('AllNoteList.vue', () => {
       await flushPromises();
 
       expect(wrapper.vm.page).toBe(2);
-      expect(noteStoreMock.actions.getNotesByprojectId).toHaveBeenCalled();
+      expect(noteStoreMock.actions.getNotesByProjectId).toHaveBeenCalled();
     });
 
     it('スクロール位置が最下部に移動すると、API接続し、失敗すると内部のページングカウントを増やさない', async () => {
@@ -290,7 +524,7 @@ describe('AllNoteList.vue', () => {
       await flushPromises();
 
       expect(wrapper.vm.page).toBe(1);
-      expect(noteStoreMock.actions.getNotesByprojectId).toHaveBeenCalled();
+      expect(noteStoreMock.actions.getNotesByProjectId).toHaveBeenCalled();
     });
 
     it('スクロール位置が最下部ではない場合、API接続しない', async () => {
@@ -302,7 +536,7 @@ describe('AllNoteList.vue', () => {
       wrapper.find('.v-list').trigger('scroll');
       await flushPromises();
 
-      expect(noteStoreMock.actions.getNotesByprojectId).not.toHaveBeenCalled();
+      expect(noteStoreMock.actions.getNotesByProjectId).not.toHaveBeenCalled();
     });
   });
 });

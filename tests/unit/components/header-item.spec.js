@@ -14,6 +14,7 @@ describe('HeaderItem.vue', () => {
   let authStoreMock;
   let vuetify;
   let mockError;
+  let router;
 
   const localVue = createLocalVue();
   localVue.use(VueRouter);
@@ -53,8 +54,10 @@ describe('HeaderItem.vue', () => {
       },
     });
 
-    const router = new VueRouter({
+    // vue-routerのインスタンスをテストごとに確実にリセットするためには、modeをabstractにする必要がある
+    router = new VueRouter({
       routes,
+      mode: 'abstract',
     });
 
     vuetify = new Vuetify();
@@ -107,6 +110,79 @@ describe('HeaderItem.vue', () => {
         expect(authStoreMock.actions.signout).toHaveBeenCalled();
         expect(wrapper.find('#error-alert').element.style.display).toBe('');
         expect(wrapper.vm.menuValue).toBeFalsy();
+      });
+    });
+  });
+
+  describe('ノート検索', () => {
+    it('renders props.searchQuery when passed', async () => {
+      // Props
+      const searchQuery = 'test';
+      await wrapper.setProps({ searchQuery });
+
+      expect(wrapper.props().searchQuery).toBe(searchQuery);
+    });
+
+    it('初回起動時、props.searchQueryの値がノート検索テキストフィールドに表示されること', async () => {
+      const searchQuery = 'test';
+      wrapper = mount(HeaderItem, {
+        store,
+        localVue,
+        router,
+        vuetify,
+        propsData: { searchQuery },
+      });
+
+      await flushPromises();
+
+      expect(wrapper.find('#search-notes').element.value).toBe(searchQuery);
+    });
+
+    describe('when input search note text And execute searchNote', () => {
+      let input = '';
+      let searchIcon = '';
+      let inputValue = '';
+      beforeEach(async () => {
+        input = wrapper.find('#search-notes');
+        searchIcon = wrapper.find('#search-notes-container button[aria-label="append icon"]');
+        inputValue = 'testvalue';
+
+        // ビューの変更検知のため、デフォルトとして設定する（この処理がない場合、$route.pushされたqueryが上書きされないので注意）
+        router.push({ name: 'NoteList' });
+      });
+
+      it('虫眼鏡アイコンを押下すると、AllNoteListビューに画面遷移する', async () => {
+        input.setValue(inputValue);
+        searchIcon.trigger('click');
+        await flushPromises();
+
+        expect(wrapper.vm.$route.name).toBe('AllNoteList');
+        expect(wrapper.vm.$route.query.search).toBe(inputValue);
+      });
+
+      it('EnterKeyを押下すると、AllNoteListビューに画面遷移する', async () => {
+        input.setValue(inputValue);
+        input.trigger('keypress.enter');
+        await flushPromises();
+
+        expect(wrapper.vm.$route.name).toBe('AllNoteList');
+        expect(wrapper.vm.$route.query.search).toBe(inputValue);
+      });
+
+      it('同じビューかつprops.searchQueryと$route.query.searchが同じ値の場合、画面をリロードする(=AllNoteListに遷移)', async () => {
+        // 遷移先と同じビューに移動する
+        router.push({
+          name: 'AllNoteList',
+          query: { search: inputValue },
+        });
+        await flushPromises();
+
+        input.setValue(inputValue);
+        input.trigger('keypress.enter');
+        await flushPromises();
+
+        expect(wrapper.vm.$route.name).toBe('AllNoteList');
+        expect(wrapper.vm.$route.query.search).toBe(inputValue);
       });
     });
   });

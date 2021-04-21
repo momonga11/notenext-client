@@ -35,7 +35,7 @@
         <v-list-item-group>
           <v-list-item
             :ripple="false"
-            :to="{ name: 'AllNoteList', params: { projectId: projectId } }"
+            :to="{ name: 'AllNoteList', params: { projectId: projectId }, query: $route.query }"
             id="allnotelist-link-navdrawer"
           >
             <v-list-item-content>
@@ -47,7 +47,11 @@
             v-for="(folder, i) in folders"
             :key="i"
             :ripple="false"
-            :to="{ name: 'NoteList', params: { projectId: projectId, folderId: folder.id } }"
+            :to="{
+              name: 'NoteList',
+              params: { projectId: projectId, folderId: folder.id },
+              query: $route.query,
+            }"
           >
             <v-list-item-icon class="mr-3">
               <v-icon>mdi-folder</v-icon>
