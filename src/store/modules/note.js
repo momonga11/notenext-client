@@ -36,6 +36,13 @@ export default {
       });
       state.notes = notes;
     },
+    updateAndNoPush(state, payload) {
+      const note = this.getters['note/getNoteById'](payload.id);
+
+      if (note) {
+        Object.assign(note, payload);
+      }
+    },
     delete(state, id) {
       const newNotes = state.notes.filter(note => note.id !== id);
       state.notes = newNotes;
@@ -45,7 +52,7 @@ export default {
     },
   },
   actions: {
-    get({ commit, dispatch }, { id, projectId, folderId }) {
+    get({ commit, dispatch }, { id, projectId, folderId, searchQuery }) {
       // フォルダIDが0または存在しない場合、フォルダを指定せずノートを取得する
       const url = folderId
         ? `/projects/${projectId}/folders/${folderId}/notes/${id}`
@@ -55,21 +62,22 @@ export default {
         'http/get',
         {
           url,
+          params: { search: searchQuery },
         },
         {
           root: true,
         }
       ).then(response => {
-        commit('update', response.data);
+        commit('updateAndNoPush', response.data);
         return response.data;
       });
     },
-    getNotesByprojectId({ commit, dispatch }, { projectId, page, shouldOverwrite }) {
+    getNotesByProjectId({ commit, dispatch }, { projectId, page, shouldOverwrite, searchQuery }) {
       return dispatch(
         'http/get',
         {
           url: `/projects/${projectId}/notes`,
-          params: { page },
+          params: { page, search: searchQuery },
         },
         {
           root: true,
@@ -84,14 +92,17 @@ export default {
         return response.data;
       });
     },
-    getNotesByfolderId({ commit, dispatch }, { projectId, folderId, page, shouldOverwrite, sortItem, sortOrder }) {
+    getNotesByfolderId(
+      { commit, dispatch },
+      { projectId, folderId, page, shouldOverwrite, sortItem, sortOrder, searchQuery }
+    ) {
       const sort = `${sortItem}:${sortOrder}`;
 
       return dispatch(
         'http/get',
         {
           url: `/projects/${projectId}/folders/${folderId}/notes`,
-          params: { with_association: true, page, sort },
+          params: { with_association: true, page, sort, search: searchQuery },
         },
         {
           root: true,

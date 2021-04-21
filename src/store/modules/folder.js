@@ -97,5 +97,32 @@ export default {
         commit('delete', id);
       });
     },
+    getFolders({ commit, dispatch }, { projectId }) {
+      return dispatch(
+        'http/get',
+        {
+          url: `/projects/${projectId}/folders`,
+        },
+        {
+          root: true,
+        }
+      ).then(response => {
+        commit('updates', response.data);
+      });
+    },
+    getFoldersExistsNote({ commit, dispatch }, { projectId, searchQuery }) {
+      return dispatch(
+        'http/get',
+        {
+          url: `/projects/${projectId}/folders`,
+          params: { note: true, search: searchQuery },
+        },
+        {
+          root: true,
+        }
+      ).then(response => {
+        commit('updates', response.data);
+      });
+    },
   },
 };

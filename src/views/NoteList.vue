@@ -1,6 +1,6 @@
 <template>
-  <CommonNoteList>
-    <template v-slot:list>
+  <CommonNoteList :projectId="projectId" :searchQuery="searchQuery">
+    <template v-slot:list="{ searchedAlertHeight }">
       <v-card height="120px" width="370px" tile class="d-flex flex-column justify-space-between" outlined>
         <div class="d-flex justify-space-between">
           <v-card-title class="pa-1">
@@ -82,7 +82,12 @@
         </div>
       </v-card>
 
-      <v-list two-line class="items" v-scroll.self="onScroll">
+      <v-list
+        two-line
+        class="items"
+        :height="`calc(100vh - 184px - ${searchedAlertHeight}px)`"
+        v-scroll.self="onScroll"
+      >
         <v-list-item-group v-if="notes">
           <template v-for="note in notes">
             <v-list-item
@@ -93,6 +98,7 @@
               :to="{
                 name: 'NoteInFolder',
                 params: { projectId: projectId, folderId: folderId, noteId: note.id },
+                query: $route.query,
               }"
             >
               <v-list-item-content>
@@ -146,7 +152,7 @@ import message from '@/consts/message';
 const defaultPage = 1;
 
 // Folderに紐づくNoteを取得する。
-const getNotes = (_store, projectId, folderId, page, shouldOverwrite, sortItem, sortOrder) => {
+const getNotes = ({ _store, projectId, folderId, page, shouldOverwrite, sortItem, sortOrder, searchQuery }) => {
   let paramSortItem = sortItem;
   let paramSortOrder = sortOrder;
 
@@ -170,6 +176,7 @@ const getNotes = (_store, projectId, folderId, page, shouldOverwrite, sortItem, 
     shouldOverwrite,
     sortItem: paramSortItem,
     sortOrder: paramSortOrder,
+    searchQuery,
   });
 };
 
@@ -197,6 +204,9 @@ export default {
     folderId: {
       type: [Number],
       required: true,
+    },
+    searchQuery: {
+      type: [String],
     },
   },
   computed: {
@@ -239,7 +249,7 @@ export default {
       this.$store
         .dispatch('folder/delete', { projectId: this.projectId, id: this.folderId })
         .then(() => {
-          this.$router.push({ name: 'AllNoteList' });
+          this.$router.push({ name: 'AllNoteList', query: { search: this.searchQuery } });
         })
         .catch(() => {});
     },
@@ -250,6 +260,7 @@ export default {
           this.$router.push({
             name: 'NoteInFolder',
             params: { noteId: data.id },
+            query: { search: this.searchQuery },
           });
         })
         .catch(() => {});
@@ -260,7 +271,14 @@ export default {
     onScroll(e) {
       // 最下部近くにスクロールバーが移動した場合、データを取得する
       if (e.target.scrollHeight <= Math.ceil(e.target.scrollTop) + e.target.offsetHeight) {
-        getNotes(this.$store, this.projectId, this.folderId, this.page + 1, false)
+        getNotes({
+          _store: this.$store,
+          projectId: this.projectId,
+          folderId: this.folderId,
+          page: this.page + 1,
+          shouldOverwrite: false,
+          searchQuery: this.searchQuery,
+        })
           .then(data => {
             if (data.length) {
               this.page += 1;
@@ -270,7 +288,16 @@ export default {
       }
     },
     sortNotes(sortItem, sortOrder) {
-      getNotes(this.$store, this.projectId, this.folderId, defaultPage, true, sortItem, sortOrder)
+      getNotes({
+        _store: this.$store,
+        projectId: this.projectId,
+        folderId: this.folderId,
+        page: defaultPage,
+        shouldOverwrite: true,
+        sortItem,
+        sortOrder,
+        searchQuery: this.searchQuery,
+      })
         .then(() => {
           // ソートの記録を保持する
           this.$store.commit('folder/setFolderAction', { id: this.folderId, sortItem, sortOrder });
@@ -279,7 +306,14 @@ export default {
     },
   },
   beforeRouteEnter(to, from, next) {
-    getNotes(store, to.params.projectId, to.params.folderId, defaultPage, true)
+    getNotes({
+      _store: store,
+      projectId: to.params.projectId,
+      folderId: to.params.folderId,
+      page: defaultPage,
+      shouldOverwrite: true,
+      searchQuery: to.query.search,
+    })
       .then(() => {
         next();
       })
@@ -290,9 +324,18 @@ export default {
       });
   },
   beforeRouteUpdate(to, from, next) {
-    if (Number(to.params.folderId) !== Number(from.params.folderId)) {
-      getNotes(this.$store, to.params.projectId, to.params.folderId, defaultPage, true)
+    if (Number(to.params.folderId) !== Number(from.params.folderId) || to.query.search !== from.query.search) {
+      getNotes({
+        _store: this.$store,
+        projectId: to.params.projectId,
+        folderId: to.params.folderId,
+        page: defaultPage,
+        shouldOverwrite: true,
+        searchQuery: to.query.search,
+      })
         .then(() => {
+          // pageを初期化する
+          this.page = defaultPage;
           next();
         })
         .catch(() => {
@@ -325,13 +368,12 @@ export default {
 }
 
 .items {
-  height: calc(100vh - 184px);
   overflow-x: hidden;
   overflow-y: auto;
   background-color: inherit;
 }
 
 .item {
-  margin-bottom: 0.1px;
+  margin-bottom: 0.5px;
 }
 </style>

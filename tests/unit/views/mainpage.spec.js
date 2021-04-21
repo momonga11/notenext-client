@@ -15,8 +15,8 @@ let mockErrorStatus;
 let mockActionFn;
 
 jest.mock('@/store', () => {
-  const _vuex = require('vuex');
-  return new _vuex.Store({
+  const localVuex = require('vuex'); // eslint-disable-line global-require
+  return new localVuex.Store({
     modules: {
       project: {
         namespaced: true,
@@ -92,6 +92,14 @@ describe('MainPage.vue', () => {
     await wrapper.setProps({ projectId });
 
     expect(wrapper.props().projectId).toBe(projectId);
+  });
+
+  it('renders props.searchQuery when passed', async () => {
+    // Props
+    const searchQuery = 'test';
+    await wrapper.setProps({ searchQuery });
+
+    expect(wrapper.props().searchQuery).toBe(searchQuery);
   });
 
   describe('beforeRouteEnter', () => {

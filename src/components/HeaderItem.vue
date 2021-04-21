@@ -2,6 +2,23 @@
   <v-app-bar app flat color="primary">
     <ErrorMessageItem v-show="hasError" :alert="hasError"></ErrorMessageItem>
     <v-app-bar-nav-icon @click.stop="drawer"></v-app-bar-nav-icon>
+    <v-card width="292px" min-width="100px" flat class="mx-3" id="search-notes-container">
+      <v-text-field
+        solo
+        flat
+        hide-details
+        append-icon="mdi-magnify"
+        single-line
+        outlined
+        dense
+        height="42px"
+        placeholder="ノート検索"
+        id="search-notes"
+        v-model="searchNoteString"
+        @click:append="searchNote"
+        @keypress.enter.exact="searchNote"
+      ></v-text-field>
+    </v-card>
     <v-spacer></v-spacer>
     <v-menu offset-y v-model="menuValue">
       <template v-slot:activator="{ on, attrs }">
@@ -32,9 +49,15 @@ export default {
   components: {
     ErrorMessageItem,
   },
+  props: {
+    searchQuery: {
+      type: [String],
+    },
+  },
   data() {
     return {
       menuValue: false,
+      searchNoteString: '',
     };
   },
   computed: {
@@ -61,6 +84,25 @@ export default {
         .then(() => {})
         .catch(() => {});
     },
+    searchNote() {
+      if (this.$route.query.search === this.searchNoteString) {
+        // query: searchが同一の場合、URLのpathがFromとToで同一となるため、VueRouterの使用上、画面遷移できない。
+        // 検索APIの実行は遷移先のコンポーネントにまとめたいので、リロードすることとする。
+        this.$router.go({ path: this.$router.currentRoute.path, force: true });
+
+        return;
+      }
+
+      this.$router.push({
+        name: 'AllNoteList',
+        query: { search: this.searchNoteString },
+      });
+    },
+  },
+  mounted() {
+    if (this.searchQuery) {
+      this.searchNoteString = this.searchQuery;
+    }
   },
 };
 </script>

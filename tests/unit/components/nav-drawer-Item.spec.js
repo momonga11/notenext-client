@@ -13,6 +13,7 @@ describe('NavDrawerItem.vue', () => {
   let projectStoreMock;
   let folderStoreMock;
   let vuetify;
+  let router;
 
   const localVue = createLocalVue();
   localVue.use(VueRouter);
@@ -48,8 +49,9 @@ describe('NavDrawerItem.vue', () => {
       },
     });
 
-    const router = new VueRouter({
+    router = new VueRouter({
       routes,
+      mode: 'abstract',
     });
 
     vuetify = new Vuetify();
@@ -95,11 +97,22 @@ describe('NavDrawerItem.vue', () => {
     expect(wrapper.find('.v-dialog--active').exists()).toBeTruthy();
   });
 
-  it('新規ノートボタンを押下すると、AllNoteList画面に遷移すること', async () => {
-    wrapper.find('#allnotelist-link-navdrawer').trigger('click');
-    await flushPromises();
+  describe('新規ノートボタン押下', () => {
+    it('AllNoteList画面に遷移すること', async () => {
+      wrapper.find('#allnotelist-link-navdrawer').trigger('click');
+      await flushPromises();
 
-    expect(wrapper.vm.$route.name).toBe('AllNoteList');
+      expect(wrapper.vm.$route.name).toBe('AllNoteList');
+    });
+
+    it('クエリ文字列が設定されていた場合、クエリ文字列を引き継いで、AllNoteList画面に遷移すること', async () => {
+      await router.push({ query: { search: 'test' } });
+      wrapper.find('#allnotelist-link-navdrawer').trigger('click');
+      await flushPromises();
+
+      expect(wrapper.vm.$route.name).toBe('AllNoteList');
+      expect(wrapper.vm.$route.query.search).toBe('test');
+    });
   });
 
   describe('フォルダリスト（複数分）押下', () => {
@@ -122,5 +135,16 @@ describe('NavDrawerItem.vue', () => {
       expect(wrapper.vm.$route.params.projectId).toBe(projectStoreMock.state.id);
       expect(wrapper.vm.$route.params.folderId).toBe(target.id);
     });
+  });
+
+  it('クエリ文字列が設定されていた場合、クエリ文字列を引き継いで、NoteList画面に遷移すること', async () => {
+    await router.push({ query: { search: 'test' } });
+
+    const target = folderStoreMock.state.folders[1];
+    wrapper.find(`a[href*='folders/${target.id}']`).trigger('click');
+    await flushPromises();
+
+    expect(wrapper.vm.$route.name).toBe('NoteList');
+    expect(wrapper.vm.$route.query.search).toBe('test');
   });
 });

@@ -146,7 +146,9 @@ describe('Note.vue', () => {
 
     const router = new VueRouter({
       routes,
+      mode: 'abstract',
     });
+
     router.push({
       name: 'Note',
       params: {
@@ -201,6 +203,14 @@ describe('Note.vue', () => {
     await wrapper.setProps({ noteId });
 
     expect(wrapper.props().noteId).toBe(noteId);
+  });
+
+  it('renders props.searchQuery when passed', async () => {
+    // Props
+    const searchQuery = 'test';
+    await wrapper.setProps({ searchQuery });
+
+    expect(wrapper.props().searchQuery).toBe(searchQuery);
   });
 
   describe('beforeRouteEnter', () => {
@@ -329,6 +339,17 @@ describe('Note.vue', () => {
         expect(wrapper.vm.$route.params.noteId).toBe(newNoteId);
       });
 
+      it('ノートコピーボタンが押下された時、現在のルート画面遷移し、URLのqueryを引き継ぐこと', async () => {
+        const searchQuery = 'test';
+        wrapper.vm.$router.push({ name: 'NoteInFolder', query: { search: searchQuery } });
+        wrapper.find('#copy-note').trigger('click');
+        await flushPromises();
+
+        expect(noteStoreMock.actions.copy).toHaveBeenCalled();
+        expect(wrapper.vm.$route.name).toBe('NoteInFolder');
+        expect(wrapper.vm.$route.query.search).toBe(searchQuery);
+      });
+
       it('ノート作成のAPIで失敗した時、画面遷移しない', async () => {
         mockError = true;
         wrapper.find('#copy-note').trigger('click');
@@ -348,21 +369,52 @@ describe('Note.vue', () => {
         expect(wrapper.find('.v-dialog--active').exists()).toBeTruthy();
       });
 
-      it('ノート削除が実行された時、delete処理を実行し、画面遷移する（現在のルートがNoteの場合）', async () => {
-        wrapper.vm.deleteNote();
-        await flushPromises();
+      describe('現在のルートがNoteの場合', () => {
+        it('ノート削除が実行された時、delete処理を実行し、画面遷移する', async () => {
+          wrapper.vm.deleteNote();
+          await flushPromises();
 
-        expect(noteStoreMock.actions.delete).toHaveBeenCalled();
-        expect(wrapper.vm.$route.name).toBe('AllNoteList');
+          expect(noteStoreMock.actions.delete).toHaveBeenCalled();
+          expect(wrapper.vm.$route.name).toBe('AllNoteList');
+        });
+
+        it('ノート削除が実行された時、delete処理を実行し、画面遷移する（URLのqueryを引き継ぐこと）', async () => {
+          const searchQuery = 'test';
+          wrapper.vm.$router.push({ name: 'Note', query: { search: searchQuery } });
+
+          wrapper.vm.deleteNote();
+          await flushPromises();
+
+          expect(noteStoreMock.actions.delete).toHaveBeenCalled();
+          expect(wrapper.vm.$route.name).toBe('AllNoteList');
+          expect(wrapper.vm.$route.query.search).toBe(searchQuery);
+        });
       });
 
-      it('ノート削除が実行された時、delete処理を実行し、画面遷移する（現在のルートがNoteInFolderの場合）', async () => {
-        wrapper.vm.$router.push({ name: 'NoteInFolder' });
-        wrapper.vm.deleteNote();
-        await flushPromises();
+      describe('現在のルートがNoteInFolderの場合', () => {
+        beforeEach(() => {
+          wrapper.vm.$router.push({ name: 'NoteInFolder' });
+        });
 
-        expect(noteStoreMock.actions.delete).toHaveBeenCalled();
-        expect(wrapper.vm.$route.name).toBe('NoteList');
+        it('ノート削除が実行された時、delete処理を実行し、画面遷移する', async () => {
+          wrapper.vm.deleteNote();
+          await flushPromises();
+
+          expect(noteStoreMock.actions.delete).toHaveBeenCalled();
+          expect(wrapper.vm.$route.name).toBe('NoteList');
+        });
+
+        it('ノート削除が実行された時、delete処理を実行し、画面遷移する（URLのqueryを引き継ぐこと）', async () => {
+          const searchQuery = 'test';
+          wrapper.vm.$router.push({ name: 'NoteInFolder', query: { search: searchQuery } });
+
+          wrapper.vm.deleteNote();
+          await flushPromises();
+
+          expect(noteStoreMock.actions.delete).toHaveBeenCalled();
+          expect(wrapper.vm.$route.name).toBe('NoteList');
+          expect(wrapper.vm.$route.query.search).toBe(searchQuery);
+        });
       });
 
       it('ノート削除のAPIで失敗した時、画面遷移しない', async () => {
