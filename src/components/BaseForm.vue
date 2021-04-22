@@ -1,6 +1,6 @@
 <template>
   <ValidationObserver ref="observer">
-    <form>
+    <form @submit.prevent>
       <slot :submit="submit" :clear="clear"></slot>
     </form>
   </ValidationObserver>
