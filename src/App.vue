@@ -9,3 +9,11 @@ export default {
   name: 'app',
 };
 </script>
+
+<style lang="scss">
+.overflow-text {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+</style>

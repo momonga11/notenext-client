@@ -15,7 +15,7 @@
         id="searched-alert"
       >
         <div class="d-flex">
-          <div class="overflow-text mr-2">{{ `'${searchQuery}'` }}</div>
+          <div class="search-query overflow-text mr-2">{{ `'${searchQuery}'` }}</div>
           <div>{{ 'で検索中' }}</div>
         </div>
       </v-alert>
@@ -95,10 +95,7 @@ export default {
   border: grey solid 1px;
 }
 
-.overflow-text {
+.search-query {
   max-width: 225px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
 }
 </style>

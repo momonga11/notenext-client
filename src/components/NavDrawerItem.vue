@@ -59,6 +59,13 @@
             <v-list-item-content>
               <v-list-item-title v-text="folder.name"></v-list-item-title>
             </v-list-item-content>
+            <v-badge
+              v-if="folder.tasks_count"
+              :content="folder.tasks_count"
+              inline
+              color="orange lighten-4 grey--text text--darken-4"
+            >
+            </v-badge>
           </v-list-item>
         </v-list-item-group>
       </v-list>

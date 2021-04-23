@@ -13,5 +13,11 @@ export default {
     formatDate(date) {
       return dayjs(date).format('YYYY/MM/DD(ddd) H:mm');
     },
+    formatDateNoTime(date) {
+      if (!date) {
+        return '';
+      }
+      return dayjs(date).format('YYYY/MM/DD(ddd)');
+    },
   },
 };

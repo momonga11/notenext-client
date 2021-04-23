@@ -101,19 +101,18 @@
                 query: $route.query,
               }"
             >
-              <v-list-item-content>
+              <v-list-item-content class="pb-2">
                 <v-list-item-title v-text="note.title" class="pb-2"></v-list-item-title>
                 <v-list-item-subtitle v-text="note.text" class="mt-1 pl-1"></v-list-item-subtitle>
-                <v-list-item-subtitle
-                  class="mt-3 ml-1"
-                  v-if="isSortedCreatedAt"
-                  v-text="formatDate(note.created_at)"
-                ></v-list-item-subtitle>
-                <v-list-item-subtitle
-                  class="mt-3 ml-1"
-                  v-else
-                  v-text="formatDate(note.updated_at)"
-                ></v-list-item-subtitle>
+                <div class="d-flex mt-3">
+                  <v-list-item-subtitle
+                    class="ml-1 py-1"
+                    v-text="isSortedCreatedAt ? formatDate(note.created_at) : formatDate(note.updated_at)"
+                  ></v-list-item-subtitle>
+                  <v-list-item-subtitle v-if="hasTaskNoCompleted(note)" class="ml-2 pa-1 pr-0 orange lighten-4">{{
+                    `期限：${formatDateNoTime(note.task.date_to)}`
+                  }}</v-list-item-subtitle>
+                </div>
               </v-list-item-content>
             </v-list-item>
             <v-divider :key="`divider-${note.id}`"></v-divider>
@@ -146,6 +145,7 @@ import {
   sortOrderValueAsc,
   sortItemCreatedAt,
 } from '@/mixins/inputInfo/note-sort-info';
+import optionsNotelist from '@/mixins/options-note-list';
 import store from '@/store';
 import message from '@/consts/message';
 
@@ -189,7 +189,7 @@ export default {
     BaseButton,
     NoSelectNote,
   },
-  mixins: [redirect, formatDate, defaultSortItem, sortItemList, sortOrderList],
+  mixins: [redirect, formatDate, defaultSortItem, sortItemList, sortOrderList, optionsNotelist],
   data() {
     return {
       menuValue: false,
@@ -351,12 +351,6 @@ export default {
 <style scoped lang="scss">
 .sort-button {
   outline: none;
-}
-
-.overflow-text {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
 }
 
 .folder-name {
