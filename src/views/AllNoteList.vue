@@ -33,7 +33,7 @@
                 ></v-list-item-subtitle>
                 <v-list-item-title v-text="note.title" class="pb-1"></v-list-item-title>
                 <v-list-item-subtitle v-text="note.text" class="pl-1"></v-list-item-subtitle>
-                <v-list-item-subtitle class="mt-3 ml-1" v-text="formatDate(note.updated_at)"></v-list-item-subtitle>
+                <v-list-item-subtitle class="mt-3 ml-1" v-text="formatDate(note.created_at)"></v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
             <v-divider :key="`divider-${note.id}`"></v-divider>
