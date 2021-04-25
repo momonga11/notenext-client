@@ -35,8 +35,8 @@ describe('NavDrawerItem.vue', () => {
       namespaced: true,
       state: {
         folders: [
-          { id: 1, name: 'folder-name', description: 'folder-description', lock_version: 0 },
-          { id: 2, name: 'folder-name2', description: 'folder-description2', lock_version: 0 },
+          { id: 1, name: 'folder-name', description: 'folder-description', lock_version: 0, tasks_count: 0 },
+          { id: 2, name: 'folder-name2', description: 'folder-description2', lock_version: 0, tasks_count: 2 },
         ],
       },
     };
@@ -146,5 +146,23 @@ describe('NavDrawerItem.vue', () => {
 
     expect(wrapper.vm.$route.name).toBe('NoteList');
     expect(wrapper.vm.$route.query.search).toBe('test');
+  });
+
+  describe('tasks count', () => {
+    it('store.folder.tasks_count > 0 の場合、タスク件数が表示されること', () => {
+      // タスク件数はid=folder-badge-${folder.id}の要素に表示される
+      expect(wrapper.find('#folder-badge-2').text()).toBe('2');
+    });
+
+    it('store.folder.tasks_count = 0 の場合、タスク件数が表示されないこと', () => {
+      expect(wrapper.find('#folder-badge-1').exists()).toBeFalsy();
+    });
+
+    it('store.folder.tasks_count + n の場合、タスク件数が変更されること', async () => {
+      wrapper.vm.$store.state.folder.folders[1].tasks_count = 3;
+      await flushPromises();
+
+      expect(wrapper.find('#folder-badge-2').text()).toBe('3');
+    });
   });
 });

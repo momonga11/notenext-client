@@ -35,7 +35,7 @@
                 <v-list-item-subtitle v-text="note.text" class="pl-1"></v-list-item-subtitle>
                 <div class="d-flex mt-3">
                   <v-list-item-subtitle class="ml-1 py-1" v-text="formatDate(note.created_at)"></v-list-item-subtitle>
-                  <v-list-item-subtitle v-if="hasTaskNoCompleted(note)" class="ml-2 pa-1 pr-0 task orange lighten-4">{{
+                  <v-list-item-subtitle v-if="hasTaskNoCompleted(note)" :class="`ml-2 pa-1 pr-0 ${taskColor}`">{{
                     `期限：${formatDateNoTime(note.task.date_to)}`
                   }}</v-list-item-subtitle>
                 </div>
@@ -59,6 +59,7 @@ import NoSelectNote from '@/components/NoSelectNote.vue';
 import { mapState } from 'vuex';
 import formatDate from '@/mixins/format-date';
 import optionsNotelist from '@/mixins/options-note-list';
+import taskInfo from '@/mixins/task-info';
 import store from '@/store';
 
 const defaultPage = 1;
@@ -78,7 +79,7 @@ export default {
     CommonNoteList,
     NoSelectNote,
   },
-  mixins: [formatDate, optionsNotelist],
+  mixins: [formatDate, optionsNotelist, taskInfo],
   data() {
     return {
       menuValue: false,

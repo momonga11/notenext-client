@@ -22,6 +22,7 @@ describe('Note.vue', () => {
   let mockError;
   let mockErrorStatus;
   let noteIdForGetAction;
+  let stateNote;
 
   const localVue = createLocalVue();
   localVue.use(VueRouter);
@@ -31,9 +32,9 @@ describe('Note.vue', () => {
     mockErrorStatus = 403;
     newNoteId = 100;
     newImageUrl = 'https://test/test-image.png';
-    noteIdForGetAction = 1;
+    noteIdForGetAction = 0;
 
-    const stateNote = {
+    stateNote = {
       notes: [
         {
           id: 10,
@@ -43,6 +44,7 @@ describe('Note.vue', () => {
           htmltext: '<div>note-text1</div>',
           created_at: new Date('2021/1/1 1:2:3'),
           updated_at: new Date('2021/1/2 4:5:6'),
+          task: { id: 1, date_to: '2022-10-1', completed: false },
         },
         {
           id: 11,
@@ -52,6 +54,7 @@ describe('Note.vue', () => {
           htmltext: '<div>note-text11</div>',
           created_at: new Date('2021/1/11 2:3:4'),
           updated_at: new Date('2021/1/12 5:6:7'),
+          task: { id: 2, date_to: '2022-10-2', completed: true },
         },
         {
           id: 20,
@@ -61,6 +64,7 @@ describe('Note.vue', () => {
           htmltext: '<div>note-text2</div>',
           created_at: new Date('2021/2/1 11:12:13'),
           updated_at: new Date('2021/2/2 12:13:14'),
+          task: {},
         },
         {
           id: 21,
@@ -70,6 +74,7 @@ describe('Note.vue', () => {
           htmltext: '<div>note-text22</div>',
           created_at: new Date('2021/2/11 21:22:23'),
           updated_at: new Date('2021/2/12 22:23:24'),
+          task: {},
         },
       ],
     };
@@ -111,6 +116,18 @@ describe('Note.vue', () => {
             return Promise.resolve({ image_url: newImageUrl });
           }
           return rejectError(wrapper);
+        }),
+        createTask: jest.fn().mockImplementation(() => {
+          if (!mockError) {
+            return Promise.resolve({ id: 10 });
+          }
+          return rejectError(wrapper);
+        }),
+        updateTask: jest.fn().mockImplementation(() => {
+          return mockActionSample(wrapper, mockError);
+        }),
+        deleteTask: jest.fn().mockImplementation(() => {
+          return mockActionSample(wrapper, mockError);
         }),
       },
     };
@@ -475,9 +492,9 @@ describe('Note.vue', () => {
       await flushPromises();
 
       // API接続中を再現するために状態を設定する
-      const { taskId } = wrapper.vm.runTaskStates[0];
+      const { taskId } = wrapper.vm.runTimerStates[0];
       await wrapper.setData({
-        runTaskStates: [{ noteId: noteStoreMock.state.notes[noteIdForGetAction].id, state: 'running', taskId }],
+        runTimerStates: [{ noteId: noteStoreMock.state.notes[noteIdForGetAction].id, state: 'running', taskId }],
       });
       input.setValue('test-note-title-hoge');
       await flushPromises();
@@ -554,9 +571,9 @@ describe('Note.vue', () => {
       await flushPromises();
 
       // API接続中を再現するために状態を設定する
-      const { taskId } = wrapper.vm.runTaskStates[0];
+      const { taskId } = wrapper.vm.runTimerStates[0];
       await wrapper.setData({
-        runTaskStates: [{ noteId: noteStoreMock.state.notes[noteIdForGetAction].id, state: 'running', taskId }],
+        runTimerStates: [{ noteId: noteStoreMock.state.notes[noteIdForGetAction].id, state: 'running', taskId }],
       });
       wrapper.vm.changeEditor(targetNote.htmltext, targetNote.text);
       await flushPromises();
@@ -644,6 +661,408 @@ describe('Note.vue', () => {
 
       expect(noteStoreMock.actions.attachImage).toHaveBeenCalled();
       expect(url).toBe('');
+    });
+  });
+
+  describe('タスク', () => {
+    let headerClassName = '';
+    let taskActionButtonText = '';
+    let taskActionButtonClassName = '';
+
+    beforeEach(() => {
+      headerClassName = wrapper.find('#note-header').element.className;
+      taskActionButtonText = wrapper.find('#task-action-button').text();
+      taskActionButtonClassName = wrapper.find('#task-action-button .v-icon').element.className;
+    });
+
+    const beforeEnter = async () => {
+      Note.beforeRouteEnter.call(wrapper.vm, undefined, undefined, c => c(wrapper.vm));
+      await flushPromises();
+    };
+
+    const expectChangeNoteHeaderClass = yes => {
+      // ヘッダーのクラスを変更しているため、クラスの変化によって判断する
+      const target = wrapper.find('#note-header').element.className;
+      if (yes) {
+        expect(target).not.toBe(headerClassName);
+      } else {
+        expect(target).toBe(headerClassName);
+      }
+    };
+
+    const expectExistsTaskDateTo = (yes, value) => {
+      const input = wrapper.find('#note-task-date-to');
+      if (yes) {
+        expect(input.exists()).toBeTruthy();
+        expect(input.element.value).toBe(value);
+      } else {
+        expect(input.exists()).toBeFalsy();
+      }
+    };
+
+    const expectExistsTaskCompleted = (yes, value) => {
+      const input = wrapper.find('#note-task-completed');
+      if (yes) {
+        expect(input.exists()).toBeTruthy();
+        expect(input.element.checked).toBe(value);
+      } else {
+        expect(input.exists()).toBeFalsy();
+      }
+    };
+
+    const expectChangeTaskButtonText = yes => {
+      const target = wrapper.find('#task-action-button').text();
+
+      if (yes) {
+        expect(target).not.toBe(taskActionButtonText);
+      } else {
+        expect(target).toBe(taskActionButtonText);
+      }
+    };
+
+    const expectChangeTaskButtonIcon = yes => {
+      // アイコン変更はクラスが変更されるため、classによって判断する
+      const target = wrapper.find('#task-action-button .v-icon').element.className;
+
+      if (yes) {
+        expect(target).not.toBe(taskActionButtonClassName);
+      } else {
+        expect(target).toBe(taskActionButtonClassName);
+      }
+    };
+
+    describe('初回起動時', () => {
+      describe('task.completed = falseのtaskが紐づく場合', () => {
+        beforeEach(() => {
+          beforeEnter();
+        });
+
+        it('ヘッダーカラーが変わること', () => {
+          expectChangeNoteHeaderClass(true);
+        });
+
+        it('期限設定inputが表示されること', () => {
+          expectExistsTaskDateTo(true, stateNote.notes[noteIdForGetAction].task.date_to);
+        });
+
+        it('タスク完了チェックボックスが表示されること', () => {
+          expectExistsTaskCompleted(true, stateNote.notes[noteIdForGetAction].task.completed);
+        });
+
+        it('タスク設定ボタンの文言が変わること', () => {
+          expectChangeTaskButtonText(true);
+        });
+
+        it('タスク設定ボタンのアイコンが変わること', () => {
+          expectChangeTaskButtonIcon(true);
+        });
+      });
+
+      describe('task.completed = trueのtaskが紐づく場合', () => {
+        beforeEach(() => {
+          // task.completed = trueのnoteが紐づいているnote.idを設定する
+          noteIdForGetAction = 1;
+          beforeEnter();
+        });
+
+        it('ヘッダーカラーが変わらないこと', () => {
+          expectChangeNoteHeaderClass(false);
+        });
+
+        it('期限設定inputが表示されること', () => {
+          expectExistsTaskDateTo(true, stateNote.notes[noteIdForGetAction].task.date_to);
+        });
+
+        it('タスク完了チェックボックスが表示されること', () => {
+          expectExistsTaskCompleted(true, stateNote.notes[noteIdForGetAction].task.completed);
+        });
+
+        it('タスク設定ボタンの文言が変わること', () => {
+          expectChangeTaskButtonText(true);
+        });
+
+        it('タスク設定ボタンのアイコンが変わること', () => {
+          expectChangeTaskButtonIcon(true);
+        });
+      });
+
+      describe('taskが紐づかない場合', () => {
+        beforeEach(() => {
+          // taskが紐づいていないnoteのidを設定する
+          noteIdForGetAction = 2;
+          beforeEnter();
+        });
+
+        it('ヘッダーカラーが変わらないこと', () => {
+          expectChangeNoteHeaderClass(false);
+        });
+
+        it('期限設定inputが表示されないこと', () => {
+          expectExistsTaskDateTo(false);
+        });
+
+        it('タスク完了チェックボックスが表示されないこと', () => {
+          expectExistsTaskCompleted(false);
+        });
+
+        it('タスク設定ボタンの文言が変わらないこと', () => {
+          expectChangeTaskButtonText(false);
+        });
+
+        it('タスク設定ボタンのアイコンが変わらないこと', () => {
+          expectChangeTaskButtonIcon(false);
+        });
+      });
+    });
+
+    describe('タスク設定ボタン押下', () => {
+      beforeEach(() => {
+        // taskが紐づいていないnoteのidを設定する
+        noteIdForGetAction = 2;
+        beforeEnter();
+      });
+
+      describe('API成功', () => {
+        beforeEach(async () => {
+          await wrapper.find('#task-action-button').trigger('click');
+        });
+
+        it('API接続が実行されること', () => {
+          expect(noteStoreMock.actions.createTask).toHaveBeenCalled();
+        });
+
+        it('ヘッダーカラーが変わること', () => {
+          expectChangeNoteHeaderClass(true);
+        });
+
+        it('期限設定inputが表示されること', () => {
+          expectExistsTaskDateTo(true, '');
+        });
+
+        it('タスク完了チェックボックスが表示されること', () => {
+          expectExistsTaskCompleted(true, false);
+        });
+
+        it('タスク設定ボタンの文言が変わること', () => {
+          expectChangeTaskButtonText(true);
+        });
+
+        it('タスク設定ボタンのアイコンが変わること', () => {
+          expectChangeTaskButtonIcon(true);
+        });
+      });
+
+      describe('API失敗', () => {
+        beforeEach(async () => {
+          mockError = true;
+          await wrapper.find('#task-action-button').trigger('click');
+        });
+
+        it('ヘッダーカラーが変わらないこと', () => {
+          expectChangeNoteHeaderClass(false);
+        });
+
+        it('期限設定inputが表示されないこと', () => {
+          expectExistsTaskDateTo(false);
+        });
+
+        it('タスク完了チェックボックスが表示されないこと', () => {
+          expectExistsTaskCompleted(false);
+        });
+
+        it('タスク設定ボタンの文言が変わらないこと', () => {
+          expectChangeTaskButtonText(false);
+        });
+
+        it('タスク設定ボタンのアイコンが変わらないこと', () => {
+          expectChangeTaskButtonIcon(false);
+        });
+      });
+    });
+
+    describe('タスク解除ボタン押下', () => {
+      beforeEach(() => {
+        // taskが紐づいているnoteのidを設定する
+        noteIdForGetAction = 0;
+        beforeEnter();
+      });
+
+      it('ボタン押下でタスク解除確認ダイヤログが表示されること', async () => {
+        expect(wrapper.find('.v-dialog--active').exists()).toBeFalsy();
+        await wrapper.find('#task-action-button').trigger('click');
+        expect(wrapper.find('.v-dialog--active').exists()).toBeTruthy();
+      });
+
+      describe('API成功', () => {
+        beforeEach(async () => {
+          await wrapper.vm.deleteTask();
+          await flushPromises();
+        });
+
+        it('API接続が実行されること', () => {
+          expect(noteStoreMock.actions.deleteTask).toHaveBeenCalled();
+        });
+
+        it('ヘッダーカラーが戻ること', () => {
+          expectChangeNoteHeaderClass(false);
+        });
+
+        it('期限設定inputが表示されないこと', () => {
+          expectExistsTaskDateTo(false);
+        });
+
+        it('タスク完了チェックボックスが表示されないこと', () => {
+          expectExistsTaskCompleted(false);
+        });
+
+        it('タスク設定ボタンの文言が戻ること', () => {
+          expectChangeTaskButtonText(false);
+        });
+
+        it('タスク設定ボタンのアイコンが戻ること', () => {
+          expectChangeTaskButtonIcon(false);
+        });
+      });
+
+      describe('API失敗', () => {
+        beforeEach(async () => {
+          mockError = true;
+          await wrapper.vm.deleteTask();
+          await flushPromises();
+        });
+
+        it('ヘッダーカラーが戻らないこと', () => {
+          expectChangeNoteHeaderClass(true);
+        });
+
+        it('期限設定inputが表示されること', () => {
+          expectExistsTaskDateTo(true, stateNote.notes[noteIdForGetAction].task.date_to);
+        });
+
+        it('タスク完了チェックボックスが表示されること', () => {
+          expectExistsTaskCompleted(true, stateNote.notes[noteIdForGetAction].task.completed);
+        });
+
+        it('タスク設定ボタンの文言が戻らないこと', () => {
+          expectChangeTaskButtonText(true);
+        });
+
+        it('タスク設定ボタンのアイコンが戻らないこと', () => {
+          expectChangeTaskButtonIcon(true);
+        });
+      });
+    });
+
+    describe('タスク完了チェックボックス押下(false => true)', () => {
+      beforeEach(() => {
+        // taskが紐づいているnoteのidを設定する
+        noteIdForGetAction = 0;
+        beforeEnter();
+      });
+
+      describe('API成功', () => {
+        // 失敗のケースは特に制御していないのでテスト不要
+        beforeEach(async () => {
+          await wrapper.find('#note-task-completed').trigger('click');
+          await flushPromises();
+        });
+
+        it('API接続が実行されること', () => {
+          expect(noteStoreMock.actions.updateTask).toHaveBeenCalled();
+        });
+
+        it('ヘッダーカラーが戻ること', () => {
+          expectChangeNoteHeaderClass(false);
+        });
+
+        it('期限設定inputが表示されること', () => {
+          expectExistsTaskDateTo(true, stateNote.notes[noteIdForGetAction].task.date_to);
+        });
+
+        it('タスク完了チェックボックスが表示されること', () => {
+          expectExistsTaskCompleted(true, true);
+        });
+
+        it('タスク設定ボタンの文言が戻らないこと', () => {
+          expectChangeTaskButtonText(true);
+        });
+
+        it('タスク設定ボタンのアイコンが戻らないこと', () => {
+          expectChangeTaskButtonIcon(true);
+        });
+      });
+    });
+
+    describe('タスク完了チェックボックス押下(true => false)', () => {
+      beforeEach(() => {
+        // task.completed = trueが紐づいているnoteのidを設定する
+        noteIdForGetAction = 1;
+        beforeEnter();
+      });
+
+      describe('API成功', () => {
+        // 失敗のケースは特に制御していないのでテスト不要
+        beforeEach(async () => {
+          // true => false
+          await wrapper.find('#note-task-completed').trigger('click');
+          await flushPromises();
+        });
+
+        it('API接続が実行されること', () => {
+          expect(noteStoreMock.actions.updateTask).toHaveBeenCalled();
+        });
+
+        it('ヘッダーカラーが変わること', () => {
+          expectChangeNoteHeaderClass(true);
+        });
+
+        it('期限設定inputが表示されること', () => {
+          expectExistsTaskDateTo(true, stateNote.notes[noteIdForGetAction].task.date_to);
+        });
+
+        it('タスク完了チェックボックスが表示されること', () => {
+          expectExistsTaskCompleted(true, false);
+        });
+
+        it('タスク設定ボタンの文言が変わること', () => {
+          expectChangeTaskButtonText(true);
+        });
+
+        it('タスク設定ボタンのアイコンが変わること', () => {
+          expectChangeTaskButtonIcon(true);
+        });
+      });
+    });
+
+    describe('期限 date-picker', () => {
+      beforeEach(() => {
+        beforeEnter();
+      });
+
+      it('期限設定inputをクリックすると、date-pickerが表示されること', async () => {
+        expect(wrapper.find('#note-task-date-to-datepicker').exists()).toBeFalsy();
+        await wrapper.find('#note-task-date-to').trigger('click');
+        expect(wrapper.find('#note-task-date-to-datepicker').exists()).toBeTruthy();
+      });
+
+      it('date-pickerの日付を選択すると、API接続が実行されること', async () => {
+        const input = wrapper.find('#note-task-date-to');
+        const beforeInputValue = input.element.value;
+        await input.trigger('click');
+        // 31日分のボタンがあるが、1つ目(=1日)以外を押下する
+        await wrapper.findAll('.v-date-picker-table button').wrappers[3].trigger('click');
+
+        expect(noteStoreMock.actions.updateTask).toHaveBeenCalled();
+        // 期限の値が変わっていることを確認
+        expect(wrapper.find('#note-task-date-to').element.value).not.toBe(beforeInputValue);
+      });
+
+      it('date-pickerの×をクリックすると、API接続が実行されること', async () => {
+        await wrapper.find('button[aria-label="clear icon"]').trigger('click');
+
+        expect(noteStoreMock.actions.updateTask).toHaveBeenCalled();
+        expect(wrapper.find('#note-task-date-to').element.value).toBe('');
+      });
     });
   });
 });

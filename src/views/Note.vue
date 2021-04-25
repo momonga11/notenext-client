@@ -1,9 +1,9 @@
 <template>
   <v-card height="100%" tile flat style="z-index: 1">
-    <v-card height="48px" tile flat :color="headerColor" class="d-flex">
+    <v-card height="48px" tile flat :color="headerColor" class="d-flex" id="note-header">
       <v-card-subtitle class="pa-1 note-folder-name overflow-text">{{ folderName }}</v-card-subtitle>
       <v-spacer></v-spacer>
-      <v-card tile outlined :color="headerColor" class="d-flex ma-1" v-if="hasTask">
+      <div class="d-flex ma-1" v-if="hasTask">
         <v-card-actions style="width: 190px; min-width: 180px">
           <v-menu
             v-model="calendarMenu"
@@ -28,6 +28,7 @@
                 flat
                 :background-color="headerColor"
                 @input="updateTask"
+                id="note-task-date-to"
               ></v-text-field>
             </template>
             <v-date-picker
@@ -37,14 +38,21 @@
               :day-format="date => new Date(date).getDate()"
               no-title
               scrollable
+              id="note-task-date-to-datepicker"
             >
             </v-date-picker>
           </v-menu>
         </v-card-actions>
         <v-card-actions style="min-width: 80px">
-          <v-checkbox v-model="task.completed" label="完了" dense @click="updateTask"></v-checkbox>
+          <v-checkbox
+            v-model="task.completed"
+            label="完了"
+            dense
+            @click="updateTask"
+            id="note-task-completed"
+          ></v-checkbox>
         </v-card-actions>
-      </v-card>
+      </div>
       <div style="width: 40px; min-width: 0px"></div>
       <v-card-actions>
         <ConfirmDeleteDialog
@@ -129,6 +137,7 @@ import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue';
 import redirect from '@/mixins/redirect';
 import BaseButton from '@/components/BaseButton.vue';
 import { validate } from 'vee-validate';
+import taskInfo from '@/mixins/task-info';
 import constants from '../consts/constants';
 import message from '../consts/message';
 
@@ -148,7 +157,7 @@ export default {
     ConfirmDeleteDialog,
     BaseButton,
   },
-  mixins: [redirect],
+  mixins: [redirect, taskInfo],
   data() {
     return {
       note: {
@@ -202,7 +211,7 @@ export default {
       return this.task.id;
     },
     headerColor() {
-      return this.hasTask && !this.task.completed ? 'orange lighten-4' : 'green lighten-5';
+      return this.hasTask && !this.task.completed ? this.taskColor : 'green lighten-5';
     },
   },
   methods: {

@@ -51,16 +51,6 @@ export default {
         state.foldersAction.push(payload);
       }
     },
-    addTaskCount(state, payload) {
-      const folder = this.getters['folder/getFolderById'](payload.id);
-      folder.tasks_count += 1;
-    },
-    reduceTaskCount(state, payload) {
-      const folder = this.getters['folder/getFolderById'](payload.id);
-      if (folder.tasks_count > 0) {
-        folder.tasks_count -= 1;
-      }
-    },
   },
   actions: {
     get({ commit, dispatch, getters }, { id, projectId }) {

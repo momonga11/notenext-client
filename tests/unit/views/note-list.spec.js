@@ -80,6 +80,7 @@ describe('NoteList.vue', () => {
           htmltext: '<div>note-text1</div>',
           created_at: new Date('2021/1/1 1:2:3'),
           updated_at: new Date('2021/1/2 4:5:6'),
+          task: { id: 1, date_to: new Date('2022/10/1'), completed: false },
         },
         {
           id: 11,
@@ -89,6 +90,7 @@ describe('NoteList.vue', () => {
           htmltext: '<div>note-text11</div>',
           created_at: new Date('2021/1/11 2:3:4'),
           updated_at: new Date('2021/1/12 5:6:7'),
+          task: { id: 2, date_to: new Date('2022/10/2'), completed: true },
         },
         {
           id: 20,
@@ -98,6 +100,7 @@ describe('NoteList.vue', () => {
           htmltext: '<div>note-text2</div>',
           created_at: new Date('2021/2/1 11:12:13'),
           updated_at: new Date('2021/2/2 12:13:14'),
+          task: { id: 3, date_to: new Date('2022/10/3'), completed: false },
         },
         {
           id: 21,
@@ -107,6 +110,7 @@ describe('NoteList.vue', () => {
           htmltext: '<div>note-text22</div>',
           created_at: new Date('2021/2/11 21:22:23'),
           updated_at: new Date('2021/2/12 22:23:24'),
+          task: { id: 4, date_to: new Date('2022/10/4'), completed: true },
         },
       ],
     };
@@ -357,6 +361,34 @@ describe('NoteList.vue', () => {
       expect(wrapper.text()).toMatch('2021/01/12(火) 5:06');
     });
 
+    describe('タスク情報の表示', () => {
+      it('storeのtask.completed = false の場合、task.date_toが表示されること', () => {
+        expect(wrapper.text()).toMatch('2022/10/01(土)');
+      });
+
+      it('storeのtask.completed = true の場合、task.date_toが表示されないこと', () => {
+        expect(wrapper.text()).not.toMatch('2022/10/02(日)');
+      });
+
+      it('task.completed が true => falseになった時、task.date_toが表示されること', async () => {
+        wrapper.vm.$store.state.note.notes[1].task.completed = false;
+        await flushPromises();
+        expect(wrapper.text()).toMatch('2022/10/02(日)');
+      });
+
+      it('task.completed が false => trueになった時、task.date_toが表示されないこと', async () => {
+        wrapper.vm.$store.state.note.notes[0].task.completed = true;
+        await flushPromises();
+        expect(wrapper.text()).not.toMatch('2022/10/01(土)');
+      });
+
+      it('task.date_to を変更した場合、反映されること', async () => {
+        wrapper.vm.$store.state.note.notes[0].task.date_to = new Date('2022/11/1');
+        await flushPromises();
+        expect(wrapper.text()).toMatch('2022/11/01(火)');
+      });
+    });
+
     describe('ソート順', () => {
       it('デフォルトのソート項目と昇順降順アイコンが表示されること', () => {
         expect(wrapper.find('#sort-note-list').text()).toBe(`${sortItemUpdatedAt.label}順`);
@@ -428,6 +460,34 @@ describe('NoteList.vue', () => {
       it('storeのupdated_atが全件変換されて表示されること', () => {
         expect(wrapper.text()).toMatch('2021/02/02(火) 12:13');
         expect(wrapper.text()).toMatch('2021/02/12(金) 22:23');
+      });
+
+      describe('タスク情報の表示', () => {
+        it('storeのtask.completed = false の場合、task.date_toが表示されること', () => {
+          expect(wrapper.text()).toMatch('2022/10/03(月)');
+        });
+
+        it('storeのtask.completed = true の場合、task.date_toが表示されないこと', () => {
+          expect(wrapper.text()).not.toMatch('2022/10/04(火)');
+        });
+
+        it('task.completed が true => falseになった時、task.date_toが表示されること', async () => {
+          wrapper.vm.$store.state.note.notes[3].task.completed = false;
+          await flushPromises();
+          expect(wrapper.text()).toMatch('2022/10/04(火)');
+        });
+
+        it('task.completed が false => trueになった時、task.date_toが表示されないこと', async () => {
+          wrapper.vm.$store.state.note.notes[2].task.completed = true;
+          await flushPromises();
+          expect(wrapper.text()).not.toMatch('2022/10/03(月)');
+        });
+
+        it('task.date_to を変更した場合、反映されること', async () => {
+          wrapper.vm.$store.state.note.notes[2].task.date_to = new Date('2022/11/1');
+          await flushPromises();
+          expect(wrapper.text()).toMatch('2022/11/01(火)');
+        });
       });
 
       describe('ソート順', () => {

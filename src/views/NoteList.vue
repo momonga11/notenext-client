@@ -109,7 +109,7 @@
                     class="ml-1 py-1"
                     v-text="isSortedCreatedAt ? formatDate(note.created_at) : formatDate(note.updated_at)"
                   ></v-list-item-subtitle>
-                  <v-list-item-subtitle v-if="hasTaskNoCompleted(note)" class="ml-2 pa-1 pr-0 orange lighten-4">{{
+                  <v-list-item-subtitle v-if="hasTaskNoCompleted(note)" :class="`ml-2 pa-1 pr-0 ${taskColor}`">{{
                     `期限：${formatDateNoTime(note.task.date_to)}`
                   }}</v-list-item-subtitle>
                 </div>
@@ -146,6 +146,7 @@ import {
   sortItemCreatedAt,
 } from '@/mixins/inputInfo/note-sort-info';
 import optionsNotelist from '@/mixins/options-note-list';
+import taskInfo from '@/mixins/task-info';
 import store from '@/store';
 import message from '@/consts/message';
 
@@ -189,7 +190,7 @@ export default {
     BaseButton,
     NoSelectNote,
   },
-  mixins: [redirect, formatDate, defaultSortItem, sortItemList, sortOrderList, optionsNotelist],
+  mixins: [redirect, formatDate, defaultSortItem, sortItemList, sortOrderList, optionsNotelist, taskInfo],
   data() {
     return {
       menuValue: false,
