@@ -1,13 +1,83 @@
 <template>
   <v-card height="100%" tile flat style="z-index: 1">
-    <v-card height="48px" tile flat color="green lighten-5" class="d-flex">
-      <v-card-subtitle class="pa-1">{{ folderName }}</v-card-subtitle>
+    <v-card height="48px" tile flat :color="headerColor" class="d-flex" id="note-header">
+      <v-card-subtitle class="pa-1 note-folder-name overflow-text">{{ folderName }}</v-card-subtitle>
       <v-spacer></v-spacer>
+      <div class="d-flex ma-1" v-if="hasTask">
+        <v-card-actions style="width: 190px; min-width: 180px">
+          <v-menu
+            v-model="calendarMenu"
+            :close-on-content-click="false"
+            transition="scale-transition"
+            offset-y
+            min-width="290px"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-text-field
+                v-model="task.dateTo"
+                placeholder="期限を設定"
+                prepend-inner-icon="mdi-calendar-check"
+                readonly
+                v-bind="attrs"
+                v-on="on"
+                dense
+                single-line
+                hide-details
+                clearable
+                solo
+                flat
+                :background-color="headerColor"
+                @input="updateTask"
+                id="note-task-date-to"
+              ></v-text-field>
+            </template>
+            <v-date-picker
+              v-model="task.dateTo"
+              @input="inputDataPicker"
+              locale="ja-jp"
+              :day-format="date => new Date(date).getDate()"
+              no-title
+              scrollable
+              id="note-task-date-to-datepicker"
+            >
+            </v-date-picker>
+          </v-menu>
+        </v-card-actions>
+        <v-card-actions style="min-width: 80px">
+          <v-checkbox
+            v-model="task.completed"
+            label="完了"
+            dense
+            @click="updateTask"
+            id="note-task-completed"
+          ></v-checkbox>
+        </v-card-actions>
+      </div>
+      <div style="width: 40px; min-width: 0px"></div>
       <v-card-actions>
-        <BaseButton depressed class="mr-4" color="green darken-1 white--text" id="task-set-button">
-          <v-icon left> mdi-plus </v-icon>
-          タスク設定
-        </BaseButton>
+        <ConfirmDeleteDialog
+          v-slot="{ openDialog }"
+          titleText="タスク解除確認"
+          :message="deleteTaskDialogText"
+          @commit="deleteTask"
+        >
+          <BaseButton
+            depressed
+            class="mr-4"
+            color="green darken-1 white--text"
+            id="task-action-button"
+            @click="hasTask ? openDialog() : createTask()"
+          >
+            <template v-if="!hasTask">
+              <v-icon left> mdi-check-underline </v-icon>
+              タスク設定
+            </template>
+            <template v-else>
+              <v-icon left> mdi-cancel </v-icon>
+              タスク解除
+            </template>
+          </BaseButton>
+        </ConfirmDeleteDialog>
         <v-menu offset-y v-model="isOpenMenu">
           <template v-slot:activator="{ on, attrs }">
             <v-btn text icon :ripple="false" v-bind="attrs" v-on="on" class="mr-4" id="open-note-menu">
@@ -67,13 +137,18 @@ import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue';
 import redirect from '@/mixins/redirect';
 import BaseButton from '@/components/BaseButton.vue';
 import { validate } from 'vee-validate';
+import taskInfo from '@/mixins/task-info';
 import constants from '../consts/constants';
+import message from '../consts/message';
 
-const taskStatePattern = {
+const timerStatePattern = {
   scheduled: 'scheduled',
   running: 'running',
 };
 const apiAccessInterVal = 1000;
+const defaultTask = () => {
+  return { id: '', dateTo: '', completed: false };
+};
 
 export default {
   components: {
@@ -82,7 +157,7 @@ export default {
     ConfirmDeleteDialog,
     BaseButton,
   },
-  mixins: [redirect],
+  mixins: [redirect, taskInfo],
   data() {
     return {
       note: {
@@ -93,10 +168,12 @@ export default {
         projectId: '',
         folderId: '',
       },
-      runTaskStates: [], // {noteId , state, taskId}
+      runTimerStates: [], // {noteId , state, timerId}
       editorUnderSpaceHeight: '205px',
       isOpenMenu: false,
       isInitialized: false,
+      task: defaultTask(),
+      calendarMenu: false,
     };
   },
   props: {
@@ -118,7 +195,10 @@ export default {
   },
   computed: {
     deleteDialogText() {
-      return 'このノートを削除します。よろしいですか？';
+      return message.TEXT_DELETE_NOTE;
+    },
+    deleteTaskDialogText() {
+      return message.TEXT_DELETE_TASK;
     },
     folderName() {
       const folder = this.$store.getters['folder/getFolderById'](this.note.folderId);
@@ -126,6 +206,12 @@ export default {
     },
     editorTextRules() {
       return `max:${constants.MAX_LENGTH_TEXT}`;
+    },
+    hasTask() {
+      return this.task.id;
+    },
+    headerColor() {
+      return this.hasTask && !this.task.completed ? this.taskColor : 'green lighten-5';
     },
   },
   methods: {
@@ -149,6 +235,14 @@ export default {
             projectId: data.project_id,
             folderId: data.folder_id, // プロパティのフォルダIDはURLによっては取得できないので、APIから取得した値を設定する
           });
+
+          // タスク情報の設定
+          if (data.task) {
+            const { date_to, completed } = data.task;
+            Object.assign(this.task, { id: data.task.id, dateTo: date_to, completed });
+          } else {
+            this.task = defaultTask();
+          }
 
           this.isInitialized = true;
           this.setHtmlToEditor(htmltext);
@@ -198,44 +292,44 @@ export default {
       }
 
       // 現在のステータスを確認
-      // タスクが存在しない場合は、状態をScheduledにしたのち、setTimeOut処理を呼ぶ。その際、戻り値のidを取得しておく。
-      // タスクの状態が実行中の場合は、実行中のsetTimeOut処理をクリアせず、状態を計画中に変える。
-      // タスクの状態が計画中の場合は、計画中のsetTimeOutをクリアし、次のsetTimeOut処理を呼ぶ
+      // タイマーが存在しない場合は、状態をScheduledにしたのち、setTimeOut処理を呼ぶ。その際、戻り値のidを取得しておく。
+      // タイマーの状態が実行中の場合は、実行中のsetTimeOut処理をクリアせず、状態を計画中に変える。
+      // タイマーの状態が計画中の場合は、計画中のsetTimeOutをクリアし、次のsetTimeOut処理を呼ぶ
       const paramId = this.noteId;
-      const runTask = this.runTaskStates.find(state => state.noteId === paramId);
-      if (!runTask) {
-        this.runTaskStates.push(
-          this.createTask(
+      const runTimer = this.runTimerStates.find(state => state.noteId === paramId);
+      if (!runTimer) {
+        this.runTimerStates.push(
+          this.createTimer(
             paramId,
-            taskStatePattern.scheduled,
+            timerStatePattern.scheduled,
             setTimeout(this.update, apiAccessInterVal, { ...this.note })
           )
         );
-      } else if (runTask.state === taskStatePattern.running) {
+      } else if (runTimer.state === timerStatePattern.running) {
         // 時間を置いて再度このメソッドを実行する
         setTimeout(this.updateNote, apiAccessInterVal);
-      } else if (runTask.state === taskStatePattern.scheduled) {
-        clearTimeout(runTask.taskId);
-        runTask.taskId = setTimeout(this.update, apiAccessInterVal, { ...this.note });
+      } else if (runTimer.state === timerStatePattern.scheduled) {
+        clearTimeout(runTimer.timerId);
+        runTimer.timerId = setTimeout(this.update, apiAccessInterVal, { ...this.note });
       }
     },
-    createTask(noteId, state, taskId) {
-      return { noteId, state, taskId };
+    createTimer(noteId, state, timerId) {
+      return { noteId, state, timerId };
     },
     update(note) {
-      // 最初に状態を実行中にする。実行後、状態が実行中の場合のみ、タスクを取り除く。
+      // 最初に状態を実行中にする。実行後、状態が実行中の場合のみ、タイマーを取り除く。
       // 実行中でなかった場合は、すでに次の処理が計画中のため、その処理内で実行させる。
-      const runTask = this.runTaskStates.find(state => state.noteId === note.id);
-      runTask.state = taskStatePattern.running;
+      const runTimer = this.runTimerStates.find(state => state.noteId === note.id);
+      runTimer.state = timerStatePattern.running;
       // API呼び出し
       this.$store
         .dispatch('note/update', Object.assign(note, { projectId: this.projectId, folderId: note.folderId }))
         .finally(() => {
           // 成功失敗にかかわらず後処理を実行する
-          if (runTask && runTask.state === taskStatePattern.running) {
-            // 不要になったタスクを取り除く。
-            const newRunTaskStates = this.runTaskStates.filter(rts => rts.noteId !== note.id);
-            this.runTaskStates = newRunTaskStates;
+          if (runTimer && runTimer.state === timerStatePattern.running) {
+            // 不要になったタイマーを取り除く。
+            const newRunTimerStates = this.runTimerStates.filter(rts => rts.noteId !== note.id);
+            this.runTimerStates = newRunTimerStates;
           }
         });
     },
@@ -312,10 +406,45 @@ export default {
       }
       this.$refs.providerEditor.applyResult(valResult);
     },
+    createTask() {
+      this.$store
+        .dispatch('note/createTask', { id: this.note.id, projectId: this.note.projectId, folderId: this.note.folderId })
+        .then(data => {
+          this.task.id = data.id;
+        })
+        .catch(() => {});
+    },
+    deleteTask() {
+      this.$store
+        .dispatch('note/deleteTask', {
+          id: this.note.id,
+          projectId: this.note.projectId,
+          folderId: this.note.folderId,
+          taskId: this.task.id,
+        })
+        .then(() => {
+          this.task = defaultTask();
+        })
+        .catch(() => {});
+    },
+    updateTask() {
+      this.$store
+        .dispatch('note/updateTask', {
+          id: this.note.id,
+          projectId: this.note.projectId,
+          taskId: this.task.id,
+          dateTo: this.task.dateTo,
+          completed: this.task.completed,
+        })
+        .catch(() => {});
+    },
+    inputDataPicker() {
+      this.calendarMenu = false;
+      this.updateTask();
+    },
   },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      // TODO: 紐づくタスクがある場合は取得する（紐づくタスクの件数をnoteと一緒に取得しておく）
       // load処理を実行する前に、初期化フラグをtrueにする必要がある（loadが非同期処理のため）
       vm.isInitialized = true;
       vm.load(vm.projectId, vm.folderId, vm.noteId).catch(error => {
@@ -328,7 +457,7 @@ export default {
       this.load(to.params.projectId, to.params.folderId, to.params.noteId)
         .then(() => {
           // TODO 紐づくタスクから高さを設定する
-          this.setEditorUnderSpaceHeight(this.editorUnderSpaceHeight);
+          this.setEditorUnderSpaceHeight();
           next();
         })
         .catch(() => {
@@ -340,3 +469,9 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.note-folder-name {
+  min-width: 100px;
+}
+</style>

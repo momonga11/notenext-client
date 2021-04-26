@@ -16,8 +16,6 @@ export default Object.freeze({
     '確認メールを送信しました。届いたメールを開き、記載されたリンクをクリックして新しいメールアドレスを有効化してください。',
   INFO_SUCCESS_SAVED_AVATAR: 'アカウント画像を更新しました。',
   INFO_SUCCESS_DELETED_AVATAR: 'アカウント画像を削除しました。',
-  // TEXT_DELETE_ACCOUNT:
-  //   'アカウントを削除します。この作業が完了しますと、以下のデータが削除されます。\n・ユーザーアカウント情報\n・作成したプロジェクト、及びそのプロジェクトに属するフォルダやノート\n尚、削除処理が完了しますと、上記データの復旧はできませんのでご注意ください。\n本当によろしいですか？',
   TEXT_DELETE_ACCOUNT: 'アカウントを削除します。この作業が完了しますと、以下のデータが削除されます。',
   TEXT_DELETE_ACCOUNT_SUB1: '・ユーザーアカウント情報',
   TEXT_DELETE_ACCOUNT_SUB2: '・作成したプロジェクト、及びそのプロジェクトに属するフォルダやノート',
@@ -26,4 +24,6 @@ export default Object.freeze({
   TEXT_DELETE_ACCOUNT_BUTTON_INFO: 'アカウントを削除します。利用しているプロジェクトは全て削除され復旧はできません。',
   INFO_SUCCESS_DELETE_ACCOUNT: 'アカウントの削除が完了しました。',
   TEXT_DELETE_FOLDER: 'このフォルダを削除します。よろしいですか？',
+  TEXT_DELETE_NOTE: 'このノートを削除します。よろしいですか？',
+  TEXT_DELETE_TASK: 'このタスクを解除します。よろしいですか？',
 });

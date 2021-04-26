@@ -50,6 +50,24 @@ export default {
     clear(state) {
       state.notes = [];
     },
+    updateTask(state, payload) {
+      const note = this.getters['note/getNoteById'](payload.note_id);
+
+      if (!note) {
+        return;
+      }
+
+      note.task = payload;
+    },
+    deleteTask(state, noteId) {
+      const note = this.getters['note/getNoteById'](noteId);
+
+      if (!note) {
+        return;
+      }
+
+      note.task = {};
+    },
   },
   actions: {
     get({ commit, dispatch }, { id, projectId, folderId, searchQuery }) {
@@ -151,7 +169,10 @@ export default {
           url: `/projects/${projectId}/folders/${folderId}/notes/${id}`,
         },
         { root: true }
-      ).then(() => {
+      ).then(async () => {
+        // フォルダのタスク数を更新する
+        await dispatch('folder/get', { id: folderId, projectId }, { root: true });
+
         commit('delete', id);
       });
     },
@@ -178,6 +199,50 @@ export default {
       ).then(response => {
         commit('update', { id, lock_version: response.data.lock_version });
         return response.data;
+      });
+    },
+    createTask({ commit, dispatch }, { id, projectId, folderId }) {
+      return dispatch(
+        'http/post',
+        { url: `/projects/${projectId}/notes/${id}/tasks`, data: { task: {} } },
+        { root: true }
+      ).then(async response => {
+        // フォルダのタスク数を更新する
+        await dispatch('folder/get', { id: folderId, projectId }, { root: true });
+
+        commit('updateTask', response.data);
+        return response.data;
+      });
+    },
+    updateTask({ commit, dispatch, getters }, { id, projectId, taskId, dateTo, completed }) {
+      const note = getters.getNoteById(id);
+
+      return dispatch(
+        'http/put',
+        {
+          url: `/projects/${projectId}/notes/${id}/tasks/${taskId}`,
+          data: { task: { date_to: dateTo, completed, lock_version: note.task.lock_version } },
+        },
+        { root: true }
+      ).then(async response => {
+        // フォルダのタスク数を更新する
+        await dispatch('folder/get', { id: note.folder_id, projectId }, { root: true });
+
+        commit('updateTask', response.data);
+      });
+    },
+    deleteTask({ commit, dispatch }, { id, projectId, folderId, taskId }) {
+      return dispatch(
+        'http/delete',
+        {
+          url: `/projects/${projectId}/notes/${id}/tasks/${taskId}`,
+        },
+        { root: true }
+      ).then(async () => {
+        // フォルダのタスク数を更新する
+        await dispatch('folder/get', { id: folderId, projectId }, { root: true });
+
+        commit('deleteTask', id);
       });
     },
   },
