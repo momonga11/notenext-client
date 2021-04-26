@@ -6,7 +6,7 @@ export const sortOrderValueAsc = 'asc';
 export const sortOrderValueDesc = 'desc';
 
 export const defaultSortValue = sortItemUpdatedAt.value;
-export const defaultSortOrder = sortOrderValueAsc;
+export const defaultSortOrder = sortOrderValueDesc;
 
 export const defaultSortItem = {
   computed: {
@@ -14,7 +14,7 @@ export const defaultSortItem = {
       return {
         label: sortItemUpdatedAt.label,
         value: sortItemUpdatedAt.value,
-        order: sortOrderValueAsc,
+        order: sortOrderValueDesc,
       };
     },
   },

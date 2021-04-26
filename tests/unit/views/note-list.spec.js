@@ -392,8 +392,8 @@ describe('NoteList.vue', () => {
     describe('ソート順', () => {
       it('デフォルトのソート項目と昇順降順アイコンが表示されること', () => {
         expect(wrapper.find('#sort-note-list').text()).toBe(`${sortItemUpdatedAt.label}順`);
-        expect(wrapper.find('#sort-icon-down').exists()).toBeTruthy();
-        expect(wrapper.find('#sort-icon-up').exists()).toBeFalsy();
+        expect(wrapper.find('#sort-icon-down').exists()).toBeFalsy();
+        expect(wrapper.find('#sort-icon-up').exists()).toBeTruthy();
       });
 
       it('前回実行したソート順が存在する場合、ソート項目と昇順降順アイコンに前回の値が表示されること', async () => {
@@ -493,8 +493,8 @@ describe('NoteList.vue', () => {
       describe('ソート順', () => {
         it('デフォルトのソート項目と昇順降順アイコンが表示されること', () => {
           expect(wrapper.find('#sort-note-list').text()).toBe(`${sortItemUpdatedAt.label}順`);
-          expect(wrapper.find('#sort-icon-down').exists()).toBeTruthy();
-          expect(wrapper.find('#sort-icon-up').exists()).toBeFalsy();
+          expect(wrapper.find('#sort-icon-down').exists()).toBeFalsy();
+          expect(wrapper.find('#sort-icon-up').exists()).toBeTruthy();
         });
 
         it('前回実行したソート順が存在する場合、ソート項目と昇順降順アイコンに前回の値が表示されること', async () => {
