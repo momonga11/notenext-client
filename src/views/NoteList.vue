@@ -57,7 +57,8 @@
                 depressed
                 class="ml-1"
                 color="grey lighten-4"
-                :width="120"
+                :width="130"
+                :min-width="130"
                 fontWeight="font-weight-medium"
                 id="sort-note-list"
               >
