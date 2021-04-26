@@ -26,14 +26,19 @@
                 query: $route.query,
               }"
             >
-              <v-list-item-content>
+              <v-list-item-content class="pb-2">
                 <v-list-item-subtitle
                   v-text="folder(note.folder_id) ? folder(note.folder_id).name : ''"
                   class="pb-2 text-caption"
                 ></v-list-item-subtitle>
                 <v-list-item-title v-text="note.title" class="pb-1"></v-list-item-title>
                 <v-list-item-subtitle v-text="note.text" class="pl-1"></v-list-item-subtitle>
-                <v-list-item-subtitle class="mt-3 ml-1" v-text="formatDate(note.created_at)"></v-list-item-subtitle>
+                <div class="d-flex mt-3">
+                  <v-list-item-subtitle class="ml-1 py-1" v-text="formatDate(note.created_at)"></v-list-item-subtitle>
+                  <v-list-item-subtitle v-if="hasTaskNoCompleted(note)" :class="`ml-2 pa-1 pr-0 ${taskColor}`">{{
+                    `期限：${formatDateNoTime(note.task.date_to)}`
+                  }}</v-list-item-subtitle>
+                </div>
               </v-list-item-content>
             </v-list-item>
             <v-divider :key="`divider-${note.id}`"></v-divider>
@@ -53,6 +58,8 @@ import CommonNoteList from '@/components/CommonNoteList.vue';
 import NoSelectNote from '@/components/NoSelectNote.vue';
 import { mapState } from 'vuex';
 import formatDate from '@/mixins/format-date';
+import optionsNotelist from '@/mixins/options-note-list';
+import taskInfo from '@/mixins/task-info';
 import store from '@/store';
 
 const defaultPage = 1;
@@ -72,7 +79,7 @@ export default {
     CommonNoteList,
     NoSelectNote,
   },
-  mixins: [formatDate],
+  mixins: [formatDate, optionsNotelist, taskInfo],
   data() {
     return {
       menuValue: false,

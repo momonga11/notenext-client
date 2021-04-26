@@ -16,6 +16,8 @@ export default {
   },
   mutations: {
     create(state, payload) {
+      // 空のタスク回数を追加する（タスク追加時、画面に描画させるため）
+      Object.assign(payload, { tasks_count: 0 });
       state.folders.push(payload);
     },
     update(state, payload) {

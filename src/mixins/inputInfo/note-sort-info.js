@@ -1,6 +1,7 @@
 export const sortItemUpdatedAt = { label: '更新日時', value: 'updated_at' };
 export const sortItemCreatedAt = { label: '作成日時', value: 'created_at' };
 export const sortItemTitle = { label: 'タイトル', value: 'title' };
+export const sortItemTaskDateTo = { label: 'タスク期限', value: 'date_to' };
 export const sortOrderValueAsc = 'asc';
 export const sortOrderValueDesc = 'desc';
 
@@ -22,7 +23,7 @@ export const defaultSortItem = {
 export const sortItemList = {
   computed: {
     sortItemList() {
-      return [sortItemUpdatedAt, sortItemCreatedAt, sortItemTitle];
+      return [sortItemUpdatedAt, sortItemCreatedAt, sortItemTitle, sortItemTaskDateTo];
     },
   },
 };

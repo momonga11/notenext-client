@@ -59,6 +59,14 @@
             <v-list-item-content>
               <v-list-item-title v-text="folder.name"></v-list-item-title>
             </v-list-item-content>
+            <v-badge
+              v-if="folder.tasks_count"
+              :content="folder.tasks_count"
+              inline
+              :color="`${taskColor} grey--text text--darken-4`"
+              :id="`folder-badge-${folder.id}`"
+            >
+            </v-badge>
           </v-list-item>
         </v-list-item-group>
       </v-list>
@@ -70,12 +78,14 @@
 import FolderSettingDialog from '@/components/FolderSettingDialog.vue';
 import ProjectSettingDialog from '@/components/ProjectSettingDialog.vue';
 import { mapState } from 'vuex';
+import taskInfo from '@/mixins/task-info';
 
 export default {
   components: {
     FolderSettingDialog,
     ProjectSettingDialog,
   },
+  mixins: [taskInfo],
   props: {
     drawer: Boolean,
     projectId: {
