@@ -125,7 +125,7 @@ export default {
 }
 
 #editor img {
-  max-width: 480px !important;
-  max-height: 560px !important;
+  max-width: 860px !important;
+  max-height: 484px !important;
 }
 </style>
