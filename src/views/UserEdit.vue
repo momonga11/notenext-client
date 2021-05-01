@@ -5,6 +5,7 @@
     @cancel-btn-click="close"
     :isVisbleCancelBtn="false"
     flat
+    class="user-edit-window"
   >
     <template v-slot:header-items>
       <BaseAlert type="success" v-show="alert" v-model="alert" id="alert-useredit">
@@ -13,7 +14,7 @@
     </template>
     <v-container fluid class="pb-1">
       <v-row class="mb-1" justify="center" no-gutters>
-        <v-col lg="2" md="3">
+        <v-col cols="15" md="2">
           <v-card class="pa-4" flat tile>
             <v-card-actions class="justify-center">
               <v-menu offset-y v-model="isMenuOpen">
@@ -56,7 +57,7 @@
             </div>
           </v-card>
         </v-col>
-        <v-col lg="3" md="3">
+        <v-col cols="14" md="5" lg="3">
           <v-card class="pa-2" flat tile max-height="300">
             <CommonUserNameField
               v-model="auth.name"
@@ -69,10 +70,10 @@
       </v-row>
     </v-container>
     <template v-slot:outside-of-form>
-      <v-container fluid class="pt-1 mb-1">
+      <v-container fluid class="pt-1 mb-2">
         <v-row justify="center" no-gutters>
-          <v-col lg="2"></v-col>
-          <v-col lg="3">
+          <v-col cols="15" md="2"></v-col>
+          <v-col cols="14" md="5" lg="3">
             <v-card class="pl-2" flat tile>
               <div class="pl-4">
                 <ChangePasswordDialog
@@ -95,43 +96,41 @@
       </v-container>
     </template>
     <template v-slot:bottom-items>
-      <v-card flat outlined class="mt-16 mx-auto px-4 pt-1 pb-5 grey lighten-4" max-width="600">
+      <v-card flat outlined class="mt-10 mx-auto px-4 pt-1 pb-5 grey lighten-4" max-width="650">
         <v-card-title class="font-weight-bold">アカウント削除</v-card-title>
         <v-row justify="space-between" no-gutters>
-          <v-col cols="7">
-            <div>{{ textDeleteAccountButtonInfo }}</div>
+          <v-col cols="15" md="7">
+            <div class="ma-2">{{ textDeleteAccountButtonInfo }}</div>
           </v-col>
-          <v-col cols="4">
-            <v-card-actions class="justify-center">
-              <ConfirmDeleteDialog
-                titleText="アカウント削除確認"
-                :width="600"
-                commitBtnText="アカウント削除"
-                commitBtnColor="red darken-1 white--text"
-                @commit="deleteAccount"
-                id="account-delete-dialog-useredit"
-              >
-                <template v-slot:default="{ openDialog }">
-                  <BaseButton color="red darken-1 white--text" @click.stop="openDialog" id="account-delete-useredit"
-                    >アカウントを削除</BaseButton
-                  >
-                </template>
-                <template v-slot:message>
-                  <v-card-text>
-                    {{ textDeleteAccount.main }}
-                    <div class="my-4 red--text font-weight-bold">
-                      <span>{{ textDeleteAccount.sub1 }}</span>
-                      <br />
-                      <span>{{ textDeleteAccount.sub2 }}</span>
-                      <br />
-                    </div>
-                    <div class="red--text">{{ textDeleteAccount.sub3 }}</div>
-                    <div class="mt-3">{{ textDeleteAccount.sub4 }}</div>
-                  </v-card-text>
-                </template>
-              </ConfirmDeleteDialog>
-            </v-card-actions>
-          </v-col>
+          <v-card-actions class="justify-center mx-auto">
+            <ConfirmDeleteDialog
+              titleText="アカウント削除確認"
+              :width="600"
+              commitBtnText="アカウント削除"
+              commitBtnColor="red darken-1 white--text"
+              @commit="deleteAccount"
+              id="account-delete-dialog-useredit"
+            >
+              <template v-slot:default="{ openDialog }">
+                <BaseButton color="red darken-1 white--text" @click.stop="openDialog" id="account-delete-useredit"
+                  >アカウントを削除</BaseButton
+                >
+              </template>
+              <template v-slot:message>
+                <v-card-text>
+                  {{ textDeleteAccount.main }}
+                  <div class="my-4 red--text font-weight-bold">
+                    <span>{{ textDeleteAccount.sub1 }}</span>
+                    <br />
+                    <span>{{ textDeleteAccount.sub2 }}</span>
+                    <br />
+                  </div>
+                  <div class="red--text">{{ textDeleteAccount.sub3 }}</div>
+                  <div class="mt-3">{{ textDeleteAccount.sub4 }}</div>
+                </v-card-text>
+              </template>
+            </ConfirmDeleteDialog>
+          </v-card-actions>
         </v-row>
       </v-card>
     </template>
@@ -345,3 +344,10 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.user-edit-window {
+  height: 100vh;
+  overflow-y: auto;
+}
+</style>

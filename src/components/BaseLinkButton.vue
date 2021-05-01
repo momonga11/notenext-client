@@ -8,6 +8,7 @@
       class="mt-2 font-weight-bold"
       plain
       :class="{ 'text-decoration-underline': hover }"
+      :block="true"
     >
       <slot></slot>
     </v-btn>

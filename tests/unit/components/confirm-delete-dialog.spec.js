@@ -1,19 +1,28 @@
 import { mount } from '@vue/test-utils';
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue';
 import flushPromises from 'flush-promises';
+import Vuetify from 'vuetify';
 
 describe('ConfirmDeleteDialog.vue', () => {
   let wrapper;
+  let vuetify;
   const props = {
     titleText: 'test-title',
     message: 'test-message',
   };
 
   beforeEach(async () => {
+    vuetify = new Vuetify();
+
     // default設定がないpropsのみ設定する
     wrapper = mount(ConfirmDeleteDialog, {
       propsData: props,
+      vuetify,
     });
+
+    // mobileモードは別途テストする
+    wrapper.vm.$vuetify.breakpoint.mobile = false;
+
     wrapper.vm.openDialog();
     await flushPromises();
   });

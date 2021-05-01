@@ -2,7 +2,7 @@
   <v-app-bar app flat color="primary">
     <ErrorMessageItem v-show="hasError" :alert="hasError"></ErrorMessageItem>
     <v-app-bar-nav-icon @click.stop="drawer"></v-app-bar-nav-icon>
-    <v-card width="292px" min-width="100px" flat class="mx-3" id="search-notes-container">
+    <v-card width="270px" min-width="100px" flat class="mx-3" id="search-notes-container">
       <v-text-field
         solo
         flat

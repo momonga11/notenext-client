@@ -59,7 +59,6 @@ export default {
           'link',
           'divider',
           'code',
-          'codeblock',
         ],
         hooks: {
           addImageBlobHook: (fileOrBlob, callback) => {

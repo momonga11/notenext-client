@@ -196,6 +196,9 @@ describe('Note.vue', () => {
         },
       },
     });
+
+    // mobileモードは別途テストする
+    wrapper.vm.$vuetify.breakpoint.mobile = false;
   });
 
   it('renders props.projectId when passed', async () => {
@@ -666,13 +669,9 @@ describe('Note.vue', () => {
 
   describe('タスク', () => {
     let headerClassName = '';
-    let taskActionButtonText = '';
-    let taskActionButtonClassName = '';
 
     beforeEach(() => {
       headerClassName = wrapper.find('#note-header').element.className;
-      taskActionButtonText = wrapper.find('#task-action-button').text();
-      taskActionButtonClassName = wrapper.find('#task-action-button .v-icon').element.className;
     });
 
     const beforeEnter = async () => {
@@ -710,24 +709,16 @@ describe('Note.vue', () => {
       }
     };
 
-    const expectChangeTaskButtonText = yes => {
-      const target = wrapper.find('#task-action-button').text();
+    const expectChangeTaskButton = yes => {
+      const createElem = wrapper.find('#task-create-button');
+      const deleteElem = wrapper.find('#task-delete-button');
 
       if (yes) {
-        expect(target).not.toBe(taskActionButtonText);
+        expect(createElem.exists()).toBeFalsy();
+        expect(deleteElem.exists()).toBeTruthy();
       } else {
-        expect(target).toBe(taskActionButtonText);
-      }
-    };
-
-    const expectChangeTaskButtonIcon = yes => {
-      // アイコン変更はクラスが変更されるため、classによって判断する
-      const target = wrapper.find('#task-action-button .v-icon').element.className;
-
-      if (yes) {
-        expect(target).not.toBe(taskActionButtonClassName);
-      } else {
-        expect(target).toBe(taskActionButtonClassName);
+        expect(createElem.exists()).toBeTruthy();
+        expect(deleteElem.exists()).toBeFalsy();
       }
     };
 
@@ -749,12 +740,8 @@ describe('Note.vue', () => {
           expectExistsTaskCompleted(true, stateNote.notes[noteIdForGetAction].task.completed);
         });
 
-        it('タスク設定ボタンの文言が変わること', () => {
-          expectChangeTaskButtonText(true);
-        });
-
-        it('タスク設定ボタンのアイコンが変わること', () => {
-          expectChangeTaskButtonIcon(true);
+        it('タスク設定ボタンではなくタスク解除ボタンが表示されること', () => {
+          expectChangeTaskButton(true);
         });
       });
 
@@ -777,12 +764,8 @@ describe('Note.vue', () => {
           expectExistsTaskCompleted(true, stateNote.notes[noteIdForGetAction].task.completed);
         });
 
-        it('タスク設定ボタンの文言が変わること', () => {
-          expectChangeTaskButtonText(true);
-        });
-
-        it('タスク設定ボタンのアイコンが変わること', () => {
-          expectChangeTaskButtonIcon(true);
+        it('タスク設定ボタンではなくタスク解除ボタンが表示されること', () => {
+          expectChangeTaskButton(true);
         });
       });
 
@@ -805,12 +788,8 @@ describe('Note.vue', () => {
           expectExistsTaskCompleted(false);
         });
 
-        it('タスク設定ボタンの文言が変わらないこと', () => {
-          expectChangeTaskButtonText(false);
-        });
-
-        it('タスク設定ボタンのアイコンが変わらないこと', () => {
-          expectChangeTaskButtonIcon(false);
+        it('タスク設定ボタンが表示されること', () => {
+          expectChangeTaskButton(false);
         });
       });
     });
@@ -824,7 +803,7 @@ describe('Note.vue', () => {
 
       describe('API成功', () => {
         beforeEach(async () => {
-          await wrapper.find('#task-action-button').trigger('click');
+          await wrapper.find('#task-create-button').trigger('click');
         });
 
         it('API接続が実行されること', () => {
@@ -843,19 +822,15 @@ describe('Note.vue', () => {
           expectExistsTaskCompleted(true, false);
         });
 
-        it('タスク設定ボタンの文言が変わること', () => {
-          expectChangeTaskButtonText(true);
-        });
-
-        it('タスク設定ボタンのアイコンが変わること', () => {
-          expectChangeTaskButtonIcon(true);
+        it('タスク設定ボタンではなくタスク解除ボタンが表示されること', () => {
+          expectChangeTaskButton(true);
         });
       });
 
       describe('API失敗', () => {
         beforeEach(async () => {
           mockError = true;
-          await wrapper.find('#task-action-button').trigger('click');
+          await wrapper.find('#task-create-button').trigger('click');
         });
 
         it('ヘッダーカラーが変わらないこと', () => {
@@ -870,12 +845,8 @@ describe('Note.vue', () => {
           expectExistsTaskCompleted(false);
         });
 
-        it('タスク設定ボタンの文言が変わらないこと', () => {
-          expectChangeTaskButtonText(false);
-        });
-
-        it('タスク設定ボタンのアイコンが変わらないこと', () => {
-          expectChangeTaskButtonIcon(false);
+        it('タスク設定ボタンが表示されていること', () => {
+          expectChangeTaskButton(false);
         });
       });
     });
@@ -889,7 +860,7 @@ describe('Note.vue', () => {
 
       it('ボタン押下でタスク解除確認ダイヤログが表示されること', async () => {
         expect(wrapper.find('.v-dialog--active').exists()).toBeFalsy();
-        await wrapper.find('#task-action-button').trigger('click');
+        await wrapper.find('#task-delete-button').trigger('click');
         expect(wrapper.find('.v-dialog--active').exists()).toBeTruthy();
       });
 
@@ -915,12 +886,8 @@ describe('Note.vue', () => {
           expectExistsTaskCompleted(false);
         });
 
-        it('タスク設定ボタンの文言が戻ること', () => {
-          expectChangeTaskButtonText(false);
-        });
-
-        it('タスク設定ボタンのアイコンが戻ること', () => {
-          expectChangeTaskButtonIcon(false);
+        it('タスク設定ボタンが表示されること', () => {
+          expectChangeTaskButton(false);
         });
       });
 
@@ -943,12 +910,8 @@ describe('Note.vue', () => {
           expectExistsTaskCompleted(true, stateNote.notes[noteIdForGetAction].task.completed);
         });
 
-        it('タスク設定ボタンの文言が戻らないこと', () => {
-          expectChangeTaskButtonText(true);
-        });
-
-        it('タスク設定ボタンのアイコンが戻らないこと', () => {
-          expectChangeTaskButtonIcon(true);
+        it('タスク設定ボタンではなく、タスク解除ボタンが表示されること', () => {
+          expectChangeTaskButton(true);
         });
       });
     });
@@ -983,12 +946,8 @@ describe('Note.vue', () => {
           expectExistsTaskCompleted(true, true);
         });
 
-        it('タスク設定ボタンの文言が戻らないこと', () => {
-          expectChangeTaskButtonText(true);
-        });
-
-        it('タスク設定ボタンのアイコンが戻らないこと', () => {
-          expectChangeTaskButtonIcon(true);
+        it('タスク設定ボタンが表示されること', () => {
+          expectChangeTaskButton(true);
         });
       });
     });
@@ -1024,12 +983,8 @@ describe('Note.vue', () => {
           expectExistsTaskCompleted(true, false);
         });
 
-        it('タスク設定ボタンの文言が変わること', () => {
-          expectChangeTaskButtonText(true);
-        });
-
-        it('タスク設定ボタンのアイコンが変わること', () => {
-          expectChangeTaskButtonIcon(true);
+        it('タスク設定ボタンではなく、タスク解除ボタンが表示されること', () => {
+          expectChangeTaskButton(true);
         });
       });
     });
