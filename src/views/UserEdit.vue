@@ -34,7 +34,6 @@
                         class="d-none"
                         ref="file"
                         accept="image/*"
-                        capture="camera"
                         @change="changeImage($event, validate)"
                       />
                     </ValidationProvider>
