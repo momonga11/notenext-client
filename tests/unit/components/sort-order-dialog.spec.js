@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import SortOrderDialog from '@/components/SortOrderDialog.vue';
 import flushPromises from 'flush-promises';
+import Vuetify from 'vuetify';
 import {
   sortItemUpdatedAt,
   sortItemCreatedAt,
@@ -17,7 +18,6 @@ describe('SortOrderDialog.vue', () => {
     { label: sortAscLabel, value: sortOrderValueAsc },
     { label: sortDescLabel, value: sortOrderValueDesc },
   ];
-  let wrapper;
   const props = {
     titleText: 'test-title',
     sortItem: 'created_at',
@@ -25,14 +25,20 @@ describe('SortOrderDialog.vue', () => {
     sortItemList,
     sortOrderList,
   };
+  let wrapper;
+  let vuetify;
 
-  beforeEach(async () => {
+  beforeEach(() => {
+    vuetify = new Vuetify();
+
     // default設定がないpropsのみ設定する
     wrapper = mount(SortOrderDialog, {
       propsData: props,
+      vuetify,
     });
-    // wrapper.vm.dialog = true;
-    // await flushPromises();
+
+    // mobileモードは別途テストする
+    wrapper.vm.$vuetify.breakpoint.mobile = false;
   });
 
   it('renders props.titleText when passed', async () => {
@@ -118,5 +124,18 @@ describe('SortOrderDialog.vue', () => {
     await flushPromises();
 
     expect(wrapper.vm.dialog).toBeFalsy();
+  });
+
+  describe('レスポンシブ対応(mobile時)', () => {
+    beforeEach(async () => {
+      wrapper.vm.$vuetify.breakpoint.mobile = true;
+
+      wrapper.vm.dialog = true;
+      await flushPromises();
+    });
+
+    it('ダイヤログがフルスクリーンになること', () => {
+      expect(wrapper.find('.v-dialog--fullscreen').exists()).toBeTruthy();
+    });
   });
 });

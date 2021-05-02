@@ -4,7 +4,7 @@
     color="secondary"
     floating
     app
-    style="z-index: 1"
+    style="z-index: 2"
     @input="$emit('input', $event)"
   >
     <v-card flat tile height="64px" color="primary" class="overflow-hidden">

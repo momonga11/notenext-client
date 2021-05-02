@@ -1,7 +1,7 @@
 <template>
-  <CommonNoteList :projectId="projectId" :searchQuery="searchQuery">
+  <CommonNoteList :projectId="projectId" :searchQuery="searchQuery" :notSelectedNote="!isRouteNote">
     <template v-slot:list="{ searchedAlertHeight }">
-      <v-card height="48px" width="370px" tile outlined>
+      <v-card height="48px" tile outlined>
         <div class="d-flex justify-space-between">
           <v-card-title class="pa-2">新着ノート</v-card-title>
         </div>
@@ -47,15 +47,13 @@
       </v-list>
     </template>
     <template v-slot:main>
-      <router-view v-show="isRouteNote"></router-view>
-      <NoSelectNote v-show="!isRouteNote" id="noselectnote-all"></NoSelectNote>
+      <router-view></router-view>
     </template>
   </CommonNoteList>
 </template>
 
 <script>
 import CommonNoteList from '@/components/CommonNoteList.vue';
-import NoSelectNote from '@/components/NoSelectNote.vue';
 import { mapState } from 'vuex';
 import formatDate from '@/mixins/format-date';
 import optionsNotelist from '@/mixins/options-note-list';
@@ -77,7 +75,6 @@ const getFolders = (_store, projectId, searchQuery) => {
 export default {
   components: {
     CommonNoteList,
-    NoSelectNote,
   },
   mixins: [formatDate, optionsNotelist, taskInfo],
   data() {

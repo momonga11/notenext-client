@@ -7,6 +7,7 @@ import flushPromises from 'flush-promises';
 import routes from '../modules/routes';
 import { ErrorStoreMock, rejectError } from '../modules/error';
 import mockActionSample from '../modules/mockActionSample';
+import HttpStoreMock from '../modules/http';
 
 describe('SignIn.vue', () => {
   let wrapper;
@@ -83,6 +84,7 @@ describe('SignIn.vue', () => {
         project: projectStoreMock,
         error: new ErrorStoreMock().getMock(),
         auth: authStoreMock,
+        http: HttpStoreMock.getMock(),
       },
     });
 

@@ -1,7 +1,7 @@
 <template>
   <BaseAccountView>
     <v-card :width="width" class="mx-auto pb-5 container">
-      <v-card-title class="title-message">
+      <v-card-title class="title-message text-body-2 text-sm-h6">
         <div class="d-flex mx-auto message">
           <v-icon large left> {{ titleIcon }} </v-icon>
           <span class="mx-4" id="message">{{ message }}</span>

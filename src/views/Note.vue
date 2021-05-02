@@ -1,10 +1,10 @@
 <template>
   <v-card height="100%" tile flat style="z-index: 1">
     <v-card height="48px" tile flat :color="headerColor" class="d-flex" id="note-header">
-      <v-card-subtitle class="pa-1 note-folder-name overflow-text">{{ folderName }}</v-card-subtitle>
+      <v-card-subtitle class="pa-1 note-folder-name overflow-hidden">{{ folderName }}</v-card-subtitle>
       <v-spacer></v-spacer>
       <div class="d-flex ma-1" v-if="hasTask">
-        <v-card-actions style="width: 190px; min-width: 180px">
+        <v-card-actions style="width: 30%; min-width: 180px">
           <v-menu
             v-model="calendarMenu"
             :close-on-content-click="false"
@@ -43,7 +43,7 @@
             </v-date-picker>
           </v-menu>
         </v-card-actions>
-        <v-card-actions style="min-width: 80px">
+        <v-card-actions style="min-width: 80px" v-if="!mobileMode">
           <v-checkbox
             v-model="task.completed"
             label="完了"
@@ -53,26 +53,33 @@
           ></v-checkbox>
         </v-card-actions>
       </div>
-      <div style="width: 40px; min-width: 0px"></div>
       <v-card-actions>
+        <BaseButton
+          depressed
+          class="mr-4"
+          color="green darken-1 white--text"
+          id="task-create-button"
+          @click="createTask"
+          v-if="!hasTask"
+        >
+          <v-icon left> mdi-check-underline </v-icon>
+          タスク設定
+        </BaseButton>
         <ConfirmDeleteDialog
           v-slot="{ openDialog }"
-          titleText="タスク解除確認"
+          :titleText="titleTextTaskDelete"
           :message="deleteTaskDialogText"
           @commit="deleteTask"
+          v-if="hasTask && !mobileMode"
         >
           <BaseButton
             depressed
             class="mr-4"
             color="green darken-1 white--text"
-            id="task-action-button"
-            @click="hasTask ? openDialog() : createTask()"
+            id="task-delete-button"
+            @click="openDialog"
           >
-            <template v-if="!hasTask">
-              <v-icon left> mdi-check-underline </v-icon>
-              タスク設定
-            </template>
-            <template v-else>
+            <template v-if="hasTask">
               <v-icon left> mdi-cancel </v-icon>
               タスク解除
             </template>
@@ -80,7 +87,7 @@
         </ConfirmDeleteDialog>
         <v-menu offset-y v-model="isOpenMenu">
           <template v-slot:activator="{ on, attrs }">
-            <v-btn text icon :ripple="false" v-bind="attrs" v-on="on" class="mr-4" id="open-note-menu">
+            <v-btn text icon :ripple="false" v-bind="attrs" v-on="on" class="mr-1" id="open-note-menu">
               <v-icon>mdi-cog</v-icon>
             </v-btn>
           </template>
@@ -101,6 +108,33 @@
                 <v-list-item-title>削除</v-list-item-title>
               </v-list-item>
             </ConfirmDeleteDialog>
+
+            <template v-if="mobileMode && hasTask">
+              <v-divider></v-divider>
+              <v-list-item id="complete-task-item" class="lime lighten-5">
+                <v-list-item-title>タスク完了</v-list-item-title>
+                <v-list-item-action>
+                  <v-checkbox
+                    v-model="task.completed"
+                    dense
+                    @click="updateTask"
+                    id="note-menu-task-completed"
+                  ></v-checkbox>
+                </v-list-item-action>
+              </v-list-item>
+
+              <ConfirmDeleteDialog
+                v-slot="{ openDialog }"
+                :titleText="titleTextTaskDelete"
+                :message="deleteTaskDialogText"
+                @open-dialog="changeMenuValue"
+                @commit="deleteTask"
+              >
+                <v-list-item @click="openDialog" id="delete-task-item" class="lime lighten-5">
+                  <v-list-item-title>タスク解除</v-list-item-title>
+                </v-list-item>
+              </ConfirmDeleteDialog>
+            </template>
           </v-list>
         </v-menu>
       </v-card-actions>
@@ -127,6 +161,16 @@
         ></CustomEditor>
       </ValidationProvider>
     </v-card>
+    <v-btn
+      fab
+      absolute
+      class="mobile-close-button"
+      color="green lighten-4"
+      @click="redirectNoteList"
+      v-if="$vuetify.breakpoint.mobile"
+      id="note-close"
+      ><v-icon>mdi-close</v-icon>
+    </v-btn>
   </v-card>
 </template>
 
@@ -212,6 +256,12 @@ export default {
     },
     headerColor() {
       return this.hasTask && !this.task.completed ? this.taskColor : 'green lighten-5';
+    },
+    mobileMode() {
+      return this.$vuetify.breakpoint.mobile;
+    },
+    titleTextTaskDelete() {
+      return 'タスク解除確認';
     },
   },
   methods: {
@@ -341,24 +391,27 @@ export default {
           folderId: this.folderId,
         })
         .then(() => {
-          // 自分のrootがどこかによって移動先が変わる。
-          switch (this.$route.name) {
-            case 'NoteInFolder':
-              this.$router.push({
-                name: 'NoteList',
-                params: { folderId: this.folderId },
-                query: this.$route.query,
-              });
-              break;
-            case 'Note':
-              this.$router.push({ name: 'AllNoteList', query: this.$route.query });
-              break;
-            default:
-              this.$router.push({ name: 'AllNoteList', query: this.$route.query });
-              break;
-          }
+          this.redirectNoteList();
         })
         .catch(() => {});
+    },
+    redirectNoteList() {
+      // 自分のrootがどこかによって移動先が変わる。
+      switch (this.$route.name) {
+        case 'NoteInFolder':
+          this.$router.push({
+            name: 'NoteList',
+            params: { folderId: this.folderId },
+            query: this.$route.query,
+          });
+          break;
+        case 'Note':
+          this.$router.push({ name: 'AllNoteList', query: this.$route.query });
+          break;
+        default:
+          this.$router.push({ name: 'AllNoteList', query: this.$route.query });
+          break;
+      }
     },
     copyNote() {
       this.$store
@@ -472,6 +525,16 @@ export default {
 
 <style lang="scss" scoped>
 .note-folder-name {
-  min-width: 100px;
+  min-width: 70px;
+}
+
+.mobile-close-button {
+  top: 50%;
+  left: 0%;
+  opacity: 0.5;
+}
+
+.overflow-hidden {
+  overflow: hidden;
 }
 </style>

@@ -1,9 +1,9 @@
 <template>
-  <CommonNoteList :projectId="projectId" :searchQuery="searchQuery">
+  <CommonNoteList :projectId="projectId" :searchQuery="searchQuery" :notSelectedNote="!isRouteNote" ref="commonNote">
     <template v-slot:list="{ searchedAlertHeight }">
-      <v-card height="120px" width="370px" tile class="d-flex flex-column justify-space-between" outlined>
+      <v-card height="120px" tile class="d-flex flex-column justify-space-between" outlined>
         <div class="d-flex justify-space-between">
-          <v-card-title class="pa-1">
+          <v-card-title class="pa-1 folder-name">
             <div class="overflow-text folder-name">
               <template v-if="folder">{{ folder.name }}</template>
             </div>
@@ -122,8 +122,7 @@
       </v-list>
     </template>
     <template v-slot:main>
-      <router-view v-show="isRouteNote"></router-view>
-      <NoSelectNote v-show="!isRouteNote" id="noselectnote"></NoSelectNote>
+      <router-view></router-view>
     </template>
   </CommonNoteList>
 </template>
@@ -133,7 +132,6 @@ import FolderSettingDialog from '@/components/FolderSettingDialog.vue';
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue';
 import SortOrderDialog from '@/components/SortOrderDialog.vue';
 import CommonNoteList from '@/components/CommonNoteList.vue';
-import NoSelectNote from '@/components/NoSelectNote.vue';
 import redirect from '@/mixins/redirect';
 import BaseButton from '@/components/BaseButton.vue';
 import formatDate from '@/mixins/format-date';
@@ -189,7 +187,6 @@ export default {
     SortOrderDialog,
     CommonNoteList,
     BaseButton,
-    NoSelectNote,
   },
   mixins: [redirect, formatDate, defaultSortItem, sortItemList, sortOrderList, optionsNotelist, taskInfo],
   data() {
@@ -356,11 +353,7 @@ export default {
 }
 
 .folder-name {
-  width: 310px;
-}
-
-.folder-description {
-  width: 370px;
+  min-width: 240px;
 }
 
 .items {

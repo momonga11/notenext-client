@@ -2,6 +2,7 @@ import { shallowMount, mount } from '@vue/test-utils';
 import FolderSettingDialog from '@/components/FolderSettingDialog.vue';
 import Vuex from 'vuex';
 import flushPromises from 'flush-promises';
+import Vuetify from 'vuetify';
 import constants from '../../../src/consts/constants';
 import { ErrorStoreMock, rejectError } from '../modules/error';
 
@@ -10,6 +11,7 @@ describe('FolderSettingDialog.vue', () => {
   let folderStoreMock;
   let wrapper;
   let mockError;
+  let vuetify;
 
   const state = {
     folders: [{ id: 1, name: 'test-name', description: 'hogehoge', lock_version: 0 }],
@@ -53,11 +55,17 @@ describe('FolderSettingDialog.vue', () => {
       },
     });
 
+    vuetify = new Vuetify();
+
     // shallowMountだと子コンポーネントをスタブによって描画しなくなる(高速化)
     wrapper = shallowMount(FolderSettingDialog, {
       propsData: { projectId: 1 },
       store,
+      vuetify,
     });
+
+    // mobileモードは別途テストする
+    wrapper.vm.$vuetify.breakpoint.mobile = false;
   });
 
   it('renders props.projectId And props.id when passed', async () => {
@@ -123,7 +131,11 @@ describe('FolderSettingDialog.vue', () => {
       wrapper = mount(FolderSettingDialog, {
         propsData: { projectId: 1 },
         store,
+        vuetify,
       });
+
+      // mobileモードは別途テストする
+      wrapper.vm.$vuetify.breakpoint.mobile = false;
 
       // openDialogによってDOMが生成される
       wrapper.vm.openDialog();
@@ -254,6 +266,17 @@ describe('FolderSettingDialog.vue', () => {
         await flushPromises();
 
         expect(wrapper.vm.dialog).toBeTruthy();
+      });
+    });
+
+    describe('レスポンシブ対応(mobile時)', () => {
+      beforeEach(async () => {
+        wrapper.vm.$vuetify.breakpoint.mobile = true;
+        await flushPromises();
+      });
+
+      it('ダイヤログがフルスクリーンになること', () => {
+        expect(wrapper.find('.v-dialog--fullscreen').exists()).toBeTruthy();
       });
     });
   });

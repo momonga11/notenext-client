@@ -484,7 +484,7 @@ describe('AllNoteList.vue', () => {
 
   it('ルートがAllNoteListの場合、ノート選択コンポーネントを表示する', async () => {
     expect(wrapper.vm.$route.name).toBe('AllNoteList');
-    expect(wrapper.find('#noselectnote-all').element.style.display).toBe('');
+    expect(wrapper.find('#noselectnote').element.style.display).toBe('');
   });
 
   it('ルートがNoteInFolderの場合、ノート選択コンポーネントを表示しない', async () => {
@@ -493,7 +493,7 @@ describe('AllNoteList.vue', () => {
     await flushPromises();
 
     expect(wrapper.vm.$route.name).toBe('Note');
-    expect(wrapper.find('#noselectnote-all').element.style.display).toBe('none');
+    expect(wrapper.find('#noselectnote').element.style.display).toBe('none');
   });
 
   describe('ノートリスト（複数分）押下', () => {

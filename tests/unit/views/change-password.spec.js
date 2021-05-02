@@ -8,6 +8,7 @@ import message from '@/consts/message';
 import routes from '../modules/routes';
 import { ErrorStoreMock } from '../modules/error';
 import mockActionSample from '../modules/mockActionSample';
+import HttpStoreMock from '../modules/http';
 
 describe('ChangePassword.vue', () => {
   let wrapper;
@@ -36,6 +37,7 @@ describe('ChangePassword.vue', () => {
       modules: {
         error: new ErrorStoreMock().getMock(),
         auth: authStoreMock,
+        http: HttpStoreMock.getMock(),
       },
     });
 

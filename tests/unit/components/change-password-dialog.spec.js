@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils';
 import Vuex from 'vuex';
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue';
 import flushPromises from 'flush-promises';
+import Vuetify from 'vuetify';
 import { ErrorStoreMock } from '../modules/error';
 import mockActionSample from '../modules/mockActionSample';
 
@@ -10,6 +11,7 @@ describe('ChangePasswordDialog.vue', () => {
   let store;
   let authStoreMock;
   let mockError;
+  let vuetify;
 
   beforeEach(async () => {
     mockError = false;
@@ -30,9 +32,15 @@ describe('ChangePasswordDialog.vue', () => {
       },
     });
 
+    vuetify = new Vuetify();
+
     wrapper = mount(ChangePasswordDialog, {
       store,
+      vuetify,
     });
+
+    // mobileモードは別途テストする
+    wrapper.vm.$vuetify.breakpoint.mobile = false;
   });
 
   it('opendialogメソッドにて、ダイアログを開く', async () => {
@@ -199,6 +207,17 @@ describe('ChangePasswordDialog.vue', () => {
           expect(authStoreMock.actions.updateCurrentPassword).toHaveBeenCalled();
           expect(wrapper.vm.dialog).toBeTruthy();
         });
+      });
+    });
+
+    describe('レスポンシブ対応(mobile時)', () => {
+      beforeEach(async () => {
+        wrapper.vm.$vuetify.breakpoint.mobile = true;
+        await flushPromises();
+      });
+
+      it('ダイヤログがフルスクリーンになること', () => {
+        expect(wrapper.find('.v-dialog--fullscreen').exists()).toBeTruthy();
       });
     });
   });

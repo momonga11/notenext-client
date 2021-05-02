@@ -17,14 +17,18 @@
       ></BasePassword>
     </ValidationProvider>
     <template v-slot:bottom-items>
-      <div class="d-flex align-center">
-        <BaseLinkButton :to="{ name: 'resetPassword' }" id="reset-password-link"
-          >パスワードをお忘れですか？</BaseLinkButton
-        >
-        <span class="mt-2 blue--text text--darken-1">/</span>
-        <BaseLinkButton :to="{ name: 'signup' }" id="signup-link">アカウント作成</BaseLinkButton>
-      </div>
-      <v-divider class="my-5"></v-divider>
+      <v-row no-gutters>
+        <v-col class="d-flex align-center link-button">
+          <BaseLinkButton :to="{ name: 'resetPassword' }" id="reset-password-link"
+            >パスワードをお忘れですか？</BaseLinkButton
+          >
+          <span class="mt-2 blue--text text--darken-1" v-if="!$vuetify.breakpoint.xsOnly">/</span>
+        </v-col>
+        <v-col class="link-button">
+          <BaseLinkButton :to="{ name: 'signup' }" id="signup-link">アカウント作成</BaseLinkButton>
+        </v-col>
+      </v-row>
+      <v-divider class="my-3"></v-divider>
       <BaseButton
         height="40"
         :block="true"
@@ -132,3 +136,9 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.link-button {
+  text-align: left;
+}
+</style>

@@ -2,6 +2,7 @@ import { shallowMount, mount } from '@vue/test-utils';
 import ProjectSettingDialog from '@/components/ProjectSettingDialog.vue';
 import Vuex from 'vuex';
 import flushPromises from 'flush-promises';
+import Vuetify from 'vuetify';
 import constants from '../../../src/consts/constants';
 import { ErrorStoreMock, rejectError } from '../modules/error';
 
@@ -10,6 +11,7 @@ describe('ProjectSettingDialog.vue', () => {
   let projectStoreMock;
   let wrapper;
   let mockError;
+  let vuetify;
 
   const state = {
     id: 1,
@@ -48,11 +50,17 @@ describe('ProjectSettingDialog.vue', () => {
       },
     });
 
+    vuetify = new Vuetify();
+
     // shallowMountだと子コンポーネントをスタブによって描画しなくなる(高速化)
     wrapper = shallowMount(ProjectSettingDialog, {
       propsData: { projectId: 1 },
       store,
+      vuetify,
     });
+
+    // mobileモードは別途テストする
+    wrapper.vm.$vuetify.breakpoint.mobile = false;
   });
 
   it('renders props.projectId when passed', async () => {
@@ -87,11 +95,15 @@ describe('ProjectSettingDialog.vue', () => {
       wrapper = mount(ProjectSettingDialog, {
         propsData: { projectId: 1 },
         store,
+        vuetify,
       });
 
       // openDialogによってDOMが生成される
       wrapper.vm.openDialog();
       await flushPromises();
+
+      // mobileモードは別途テストする
+      wrapper.vm.$vuetify.breakpoint.mobile = false;
     });
 
     it('×ボタンが押下されたとき、ダイアログを閉じる', async () => {
@@ -184,6 +196,17 @@ describe('ProjectSettingDialog.vue', () => {
 
       await flushPromises();
       expect(wrapper.vm.dialog).toBeTruthy();
+    });
+
+    describe('レスポンシブ対応(mobile時)', () => {
+      beforeEach(async () => {
+        wrapper.vm.$vuetify.breakpoint.mobile = true;
+        await flushPromises();
+      });
+
+      it('ダイヤログがフルスクリーンになること', () => {
+        expect(wrapper.find('.v-dialog--fullscreen').exists()).toBeTruthy();
+      });
     });
   });
 });

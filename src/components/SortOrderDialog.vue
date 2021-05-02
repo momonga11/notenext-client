@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" width="400" @click:outside="cancelBtnClick">
+  <v-dialog v-model="dialog" width="400" @click:outside="cancelBtnClick" :fullscreen="$vuetify.breakpoint.mobile">
     <template v-slot:activator="{ on, attrs }">
       <slot :on="on" :attrs="attrs"></slot>
     </template>
