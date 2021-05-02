@@ -1,6 +1,6 @@
 <template>
   <v-row no-gutters class="flex-wrap" style="height: 100%">
-    <v-col class="grey lighten-4 list" :class="classListWidth" v-show="showList">
+    <v-col class="grey lighten-4 list" :class="classListWidth" v-show="showList" id="common-note-list-container">
       <v-alert
         v-model="alert"
         v-if="searchQuery"
@@ -21,7 +21,13 @@
       </v-alert>
       <slot name="list" v-bind:searchedAlertHeight="searchedAlertHeight"></slot>
     </v-col>
-    <v-col cols="7" class="flex-grow-1 flex-shrink-0" style="max-width: 100%" v-show="showMain">
+    <v-col
+      cols="7"
+      class="flex-grow-1 flex-shrink-0"
+      style="max-width: 100%"
+      v-show="showMain"
+      id="common-note-main-container"
+    >
       <NoSelectNote v-show="notSelectedNote" id="noselectnote"></NoSelectNote>
       <slot name="main" v-show="!notSelectedNote"></slot>
     </v-col>
@@ -126,10 +132,7 @@ export default {
     },
   },
   mounted() {
-    // 初回呼び出しの時は、watchが動いていないため、明示的に設定する
     if (this.searchQuery) {
-      this.alert = true;
-
       // 初回呼び出しの時、フォルダを検索条件で抽出する
       this.$store
         .dispatch('folder/getFoldersExistsNote', { projectId: this.projectId, searchQuery: this.searchQuery })
@@ -140,10 +143,13 @@ export default {
     this.changeShowViewIfMobile();
   },
   watch: {
-    searchQuery(value) {
-      if (value) {
-        this.alert = true;
-      }
+    searchQuery: {
+      immediate: true,
+      handler(value) {
+        if (value) {
+          this.alert = true;
+        }
+      },
     },
     $route() {
       this.changeShowViewIfMobile();

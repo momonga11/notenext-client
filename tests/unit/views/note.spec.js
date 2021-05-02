@@ -722,6 +722,14 @@ describe('Note.vue', () => {
       }
     };
 
+    const expectNoTaskButton = () => {
+      const createElem = wrapper.find('#task-create-button');
+      const deleteElem = wrapper.find('#task-delete-button');
+
+      expect(createElem.exists()).toBeFalsy();
+      expect(deleteElem.exists()).toBeFalsy();
+    };
+
     describe('初回起動時', () => {
       describe('task.completed = falseのtaskが紐づく場合', () => {
         beforeEach(() => {
@@ -849,6 +857,50 @@ describe('Note.vue', () => {
           expectChangeTaskButton(false);
         });
       });
+
+      describe('レスポンシブ対応', () => {
+        beforeEach(async () => {
+          await wrapper.find('#task-create-button').trigger('click');
+          // メニューを開く
+          wrapper.find('#open-note-menu').trigger('click');
+          await flushPromises();
+        });
+
+        const elemDeleteTaskItem = () => {
+          return wrapper.find('#delete-task-item');
+        };
+
+        const elemCompleteTaskItem = () => {
+          return wrapper.find('#complete-task-item');
+        };
+
+        it('設定メニューにタスク解除項目が表示されていないこと', () => {
+          expect(elemDeleteTaskItem().exists()).toBeFalsy();
+        });
+
+        it('設定メニューにタスク完了チェックボックスが表示されていないこと', () => {
+          expect(elemCompleteTaskItem().exists()).toBeFalsy();
+        });
+
+        describe('mobile = true', () => {
+          beforeEach(async () => {
+            wrapper.vm.$vuetify.breakpoint.mobile = true;
+            await flushPromises();
+          });
+
+          it('タスクボタンが非表示になること', () => {
+            expectNoTaskButton();
+          });
+
+          it('設定メニューにタスク解除の項目が表示されること', () => {
+            expect(elemDeleteTaskItem().exists()).toBeTruthy();
+          });
+
+          it('設定メニューにタスク完了チェックボックスが表示されること', () => {
+            expect(elemCompleteTaskItem().exists()).toBeTruthy();
+          });
+        });
+      });
     });
 
     describe('タスク解除ボタン押下', () => {
@@ -914,6 +966,43 @@ describe('Note.vue', () => {
           expectChangeTaskButton(true);
         });
       });
+
+      describe('レスポンシブ対応', () => {
+        beforeEach(async () => {
+          // メニューを開く
+          wrapper.find('#open-note-menu').trigger('click');
+          await flushPromises();
+        });
+
+        const elemDeleteTaskItem = () => {
+          return wrapper.find('#delete-task-item');
+        };
+
+        it('設定メニューにタスク解除項目が表示されていないこと', () => {
+          expect(elemDeleteTaskItem().exists()).toBeFalsy();
+        });
+
+        describe('mobile = true', () => {
+          beforeEach(async () => {
+            wrapper.vm.$vuetify.breakpoint.mobile = true;
+            await flushPromises();
+          });
+
+          it('タスクボタンが非表示になること', () => {
+            expectNoTaskButton();
+          });
+
+          it('設定メニューにタスク解除の項目が表示されること', () => {
+            expect(elemDeleteTaskItem().exists()).toBeTruthy();
+          });
+
+          it('ボタン押下でタスク解除確認ダイヤログが表示されること', async () => {
+            expect(wrapper.find('.v-dialog--active').exists()).toBeFalsy();
+            await elemDeleteTaskItem().trigger('click');
+            expect(wrapper.find('.v-dialog--active').exists()).toBeTruthy();
+          });
+        });
+      });
     });
 
     describe('タスク完了チェックボックス押下(false => true)', () => {
@@ -948,6 +1037,67 @@ describe('Note.vue', () => {
 
         it('タスク設定ボタンが表示されること', () => {
           expectChangeTaskButton(true);
+        });
+      });
+
+      describe('レスポンシブ対応', () => {
+        beforeEach(async () => {
+          // メニューを開く
+          wrapper.find('#open-note-menu').trigger('click');
+          await flushPromises();
+        });
+
+        const elemCompleteTaskItem = () => {
+          return wrapper.find('#complete-task-item');
+        };
+
+        it('設定メニューにタスク完了チェックボックスが表示されていないこと', () => {
+          expect(elemCompleteTaskItem().exists()).toBeFalsy();
+        });
+
+        describe('mobile = true', () => {
+          beforeEach(async () => {
+            wrapper.vm.$vuetify.breakpoint.mobile = true;
+            await flushPromises();
+          });
+
+          it('タスク完了チェックボックスが非表示になること', () => {
+            expect(wrapper.find('#note-task-completed').exists()).toBeFalsy();
+          });
+
+          it('設定メニューにタスク完了の項目が表示されること', () => {
+            expect(elemCompleteTaskItem().exists()).toBeTruthy();
+          });
+
+          describe('設定メニュー タスク完了チェック押下', () => {
+            describe('API成功', () => {
+              // 失敗のケースは特に制御していないのでテスト不要
+              beforeEach(async () => {
+                await wrapper.find('#note-menu-task-completed').trigger('click');
+                await flushPromises();
+              });
+
+              it('API接続が実行されること', () => {
+                expect(noteStoreMock.actions.updateTask).toHaveBeenCalled();
+              });
+
+              it('ヘッダーカラーが戻ること', () => {
+                expectChangeNoteHeaderClass(false);
+              });
+
+              it('期限設定inputが表示されること', () => {
+                expectExistsTaskDateTo(true, stateNote.notes[noteIdForGetAction].task.date_to);
+              });
+
+              it('タスク完了チェックボックスが表示されないこと', () => {
+                expectExistsTaskCompleted(false);
+              });
+
+              it('タスク設定ボタンもタスク解除ボタンも表示されていないこと', () => {
+                expectNoTaskButton();
+              });
+            });
+          });
         });
       });
     });
@@ -987,6 +1137,67 @@ describe('Note.vue', () => {
           expectChangeTaskButton(true);
         });
       });
+
+      describe('レスポンシブ対応', () => {
+        beforeEach(async () => {
+          // メニューを開く
+          wrapper.find('#open-note-menu').trigger('click');
+          await flushPromises();
+        });
+
+        const elemCompleteTaskItem = () => {
+          return wrapper.find('#complete-task-item');
+        };
+
+        it('設定メニューにタスク完了チェックボックスが表示されていないこと', () => {
+          expect(elemCompleteTaskItem().exists()).toBeFalsy();
+        });
+
+        describe('mobile = true', () => {
+          beforeEach(async () => {
+            wrapper.vm.$vuetify.breakpoint.mobile = true;
+            await flushPromises();
+          });
+
+          it('タスク完了チェックボックスが非表示になること', () => {
+            expect(wrapper.find('#note-task-completed').exists()).toBeFalsy();
+          });
+
+          it('設定メニューにタスク完了の項目が表示されること', () => {
+            expect(elemCompleteTaskItem().exists()).toBeTruthy();
+          });
+
+          describe('設定メニュー タスク完了チェック押下', () => {
+            describe('API成功', () => {
+              // 失敗のケースは特に制御していないのでテスト不要
+              beforeEach(async () => {
+                await wrapper.find('#note-menu-task-completed').trigger('click');
+                await flushPromises();
+              });
+
+              it('API接続が実行されること', () => {
+                expect(noteStoreMock.actions.updateTask).toHaveBeenCalled();
+              });
+
+              it('ヘッダーカラーが変わること', () => {
+                expectChangeNoteHeaderClass(true);
+              });
+
+              it('期限設定inputが表示されること', () => {
+                expectExistsTaskDateTo(true, stateNote.notes[noteIdForGetAction].task.date_to);
+              });
+
+              it('タスク完了チェックボックスが表示されないこと', () => {
+                expectExistsTaskCompleted(false);
+              });
+
+              it('タスク設定ボタンもタスク解除ボタンも表示されていないこと', () => {
+                expectNoTaskButton();
+              });
+            });
+          });
+        });
+      });
     });
 
     describe('期限 date-picker', () => {
@@ -1017,6 +1228,38 @@ describe('Note.vue', () => {
 
         expect(noteStoreMock.actions.updateTask).toHaveBeenCalled();
         expect(wrapper.find('#note-task-date-to').element.value).toBe('');
+      });
+    });
+  });
+
+  describe('レスポンシブ対応(mobile時)', () => {
+    const changeMobileMode = async () => {
+      wrapper.vm.$vuetify.breakpoint.mobile = true;
+      await flushPromises();
+    };
+
+    it('ノートリスト遷移ボタンが表示されること', async () => {
+      expect(wrapper.find('#note-close').exists()).toBeFalsy();
+      await changeMobileMode();
+      expect(wrapper.find('#note-close').exists()).toBeTruthy();
+    });
+
+    describe('mobile = true', () => {
+      beforeEach(async () => {
+        await changeMobileMode();
+      });
+
+      describe('ノートリスト遷移ボタン押下', () => {
+        it('現在のルートがNoteの場合、AllNoteListへ遷移すること', async () => {
+          await wrapper.find('#note-close').trigger('click');
+          expect(wrapper.vm.$route.name).toBe('AllNoteList');
+        });
+
+        it('現在のルートがNoteInFolderの場合、NoteListへ遷移すること', async () => {
+          await wrapper.vm.$router.push({ name: 'NoteInFolder' });
+          await wrapper.find('#note-close').trigger('click');
+          expect(wrapper.vm.$route.name).toBe('NoteList');
+        });
       });
     });
   });

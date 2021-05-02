@@ -268,5 +268,16 @@ describe('FolderSettingDialog.vue', () => {
         expect(wrapper.vm.dialog).toBeTruthy();
       });
     });
+
+    describe('レスポンシブ対応(mobile時)', () => {
+      beforeEach(async () => {
+        wrapper.vm.$vuetify.breakpoint.mobile = true;
+        await flushPromises();
+      });
+
+      it('ダイヤログがフルスクリーンになること', () => {
+        expect(wrapper.find('.v-dialog--fullscreen').exists()).toBeTruthy();
+      });
+    });
   });
 });

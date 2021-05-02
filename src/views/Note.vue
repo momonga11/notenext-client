@@ -111,7 +111,7 @@
 
             <template v-if="mobileMode && hasTask">
               <v-divider></v-divider>
-              <v-list-item id="create-task-item" class="lime lighten-5">
+              <v-list-item id="complete-task-item" class="lime lighten-5">
                 <v-list-item-title>タスク完了</v-list-item-title>
                 <v-list-item-action>
                   <v-checkbox
@@ -168,6 +168,7 @@
       color="green lighten-4"
       @click="redirectNoteList"
       v-if="$vuetify.breakpoint.mobile"
+      id="note-close"
       ><v-icon>mdi-close</v-icon>
     </v-btn>
   </v-card>

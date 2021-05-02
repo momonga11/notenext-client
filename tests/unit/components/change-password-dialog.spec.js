@@ -209,5 +209,16 @@ describe('ChangePasswordDialog.vue', () => {
         });
       });
     });
+
+    describe('レスポンシブ対応(mobile時)', () => {
+      beforeEach(async () => {
+        wrapper.vm.$vuetify.breakpoint.mobile = true;
+        await flushPromises();
+      });
+
+      it('ダイヤログがフルスクリーンになること', () => {
+        expect(wrapper.find('.v-dialog--fullscreen').exists()).toBeTruthy();
+      });
+    });
   });
 });
