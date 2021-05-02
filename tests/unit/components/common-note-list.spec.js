@@ -178,4 +178,45 @@ describe('CommonNoteList.vue', () => {
       expect(wrapper.vm.$route.query.search).not.toBeUndefined();
     });
   });
+
+  describe('レスポンシブ対応(mobile時)', () => {
+    const expectDisplayList = () => {
+      expect(wrapper.find('#common-note-list-container').element.style.display).not.toBe('none');
+      expect(wrapper.find('#common-note-main-container').element.style.display).toBe('none');
+    };
+
+    const expectDisplayMain = () => {
+      expect(wrapper.find('#common-note-list-container').element.style.display).toBe('none');
+      expect(wrapper.find('#common-note-main-container').element.style.display).not.toBe('none');
+    };
+
+    beforeEach(async () => {
+      wrapper.vm.$vuetify.breakpoint.mobile = true;
+      await flushPromises();
+    });
+
+    it('現在のルートがAllNoteListの場合、Note(Main)側のビューが非表示になること', async () => {
+      await wrapper.vm.$router.push({ name: 'AllNoteList' });
+
+      expectDisplayList();
+    });
+
+    it('現在のルートがNoteListの場合、Note(Main)側のビューが非表示になること', async () => {
+      await wrapper.vm.$router.push({ name: 'NoteList' });
+
+      expectDisplayList();
+    });
+
+    it('現在のルートがNoteの場合、List側のビューが非表示になること', async () => {
+      await wrapper.vm.$router.push({ name: 'Note' });
+
+      expectDisplayMain();
+    });
+
+    it('現在のルートがNoteInFolderの場合、List側のビューが非表示になること', async () => {
+      await wrapper.vm.$router.push({ name: 'NoteInFolder' });
+
+      expectDisplayMain();
+    });
+  });
 });

@@ -4,7 +4,7 @@
       <slot :openDialog="openDialog"></slot>
     </template>
 
-    <v-dialog v-model="dialog" :width="width" @click:outside="cancelBtnClick">
+    <v-dialog v-model="dialog" :width="width" @click:outside="cancelBtnClick" :fullscreen="$vuetify.breakpoint.mobile">
       <CommonDialogCard
         :titleText="titleText"
         :commitBtnText="commitBtnText"

@@ -1,13 +1,20 @@
 <template>
   <div class="mx-auto text-center my-3">
-    <BaseButton v-if="isVisbleCancelBtn" :isCancelBtn="true" @click="cancelBtnClick" class="mx-3" id="cancel-button">{{
-      cancelBtnText
-    }}</BaseButton>
+    <BaseButton
+      v-if="isVisbleCancelBtn"
+      :isCancelBtn="true"
+      @click="cancelBtnClick"
+      class="mr-3"
+      :width="widthButton"
+      id="cancel-button"
+      >{{ cancelBtnText }}</BaseButton
+    >
     <BaseButton
       v-if="isVisbleCommitBtn"
       @click="commitBtnClick"
-      class="mx-3"
+      class="ml-3"
       :color="commitBtnColor"
+      :width="widthButton"
       id="commit-button"
     >
       {{ commitBtnText }}</BaseButton
@@ -42,6 +49,15 @@ export default {
     commitBtnColor: {
       type: String,
       default: '',
+    },
+  },
+  computed: {
+    widthButton() {
+      if (this.$vuetify.breakpoint.mobile) {
+        return 130;
+      }
+
+      return 150;
     },
   },
   methods: {

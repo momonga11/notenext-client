@@ -4,7 +4,7 @@
       <slot :openDialog="openDialog"></slot>
     </template>
 
-    <v-dialog v-model="dialog" :width="500" @click:outside="clear">
+    <v-dialog v-model="dialog" :width="500" @click:outside="clear" :fullscreen="$vuetify.breakpoint.mobile">
       <FormDialogCard titleText="パスワード変更" @cancel-btn-click="clear" @commit-btn-click="submit">
         <CommonPasswordField
           :name="currentPasswordInfo.label"

@@ -1,19 +1,28 @@
 import { mount } from '@vue/test-utils';
 import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog.vue';
 import flushPromises from 'flush-promises';
+import Vuetify from 'vuetify';
 
 describe('ConfirmDeleteDialog.vue', () => {
   let wrapper;
+  let vuetify;
   const props = {
     titleText: 'test-title',
     message: 'test-message',
   };
 
   beforeEach(async () => {
+    vuetify = new Vuetify();
+
     // default設定がないpropsのみ設定する
     wrapper = mount(ConfirmDeleteDialog, {
       propsData: props,
+      vuetify,
     });
+
+    // mobileモードは別途テストする
+    wrapper.vm.$vuetify.breakpoint.mobile = false;
+
     wrapper.vm.openDialog();
     await flushPromises();
   });
@@ -76,5 +85,16 @@ describe('ConfirmDeleteDialog.vue', () => {
     await flushPromises();
 
     expect(wrapper.vm.dialog).toBeFalsy();
+  });
+
+  describe('レスポンシブ対応(mobile時)', () => {
+    beforeEach(async () => {
+      wrapper.vm.$vuetify.breakpoint.mobile = true;
+      await flushPromises();
+    });
+
+    it('ダイヤログがフルスクリーンになること', () => {
+      expect(wrapper.find('.v-dialog--fullscreen').exists()).toBeTruthy();
+    });
   });
 });
