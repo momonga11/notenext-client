@@ -11,7 +11,7 @@
           <div class="mx-auto">{{ titleText }}</div>
         </v-card-title>
         <BaseForm ref="baseform">
-          <slot></slot>
+          <slot :commitBtnClick="commitBtnClick"></slot>
           <BaseButton height="40" :block="true" @click="commitBtnClick" id="commit-button">{{
             commitButtonText
           }}</BaseButton>

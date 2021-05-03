@@ -5,17 +5,25 @@
         {{ confirmedSuccessMessage }}
       </BaseAlert>
     </template>
-    <CommonEmailField v-model="auth.email" :fieldClass="'mb-2'" id="email-signin"></CommonEmailField>
-    <ValidationProvider v-slot="{ errors }" :name="passwordInfo.label" rules="required">
-      <BasePassword
-        v-model="auth.password"
-        :error-messages="errors"
-        :label="passwordInfo.label"
-        outlined
-        :class="'mb-2'"
-        id="password-signin"
-      ></BasePassword>
-    </ValidationProvider>
+    <template v-slot:default="{ commitBtnClick }">
+      <CommonEmailField
+        v-model="auth.email"
+        :fieldClass="'mb-2'"
+        id="email-signin"
+        @keypress.enter.exact="commitBtnClick"
+      ></CommonEmailField>
+      <ValidationProvider v-slot="{ errors }" :name="passwordInfo.label" rules="required">
+        <BasePassword
+          v-model="auth.password"
+          :error-messages="errors"
+          :label="passwordInfo.label"
+          outlined
+          :class="'mb-2'"
+          id="password-signin"
+          @keypress.enter.exact="commitBtnClick"
+        ></BasePassword>
+      </ValidationProvider>
+    </template>
     <template v-slot:bottom-items>
       <v-row no-gutters>
         <v-col class="d-flex align-center link-button">
