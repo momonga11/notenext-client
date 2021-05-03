@@ -157,7 +157,7 @@
           ref="editor"
           @change="changeEditor"
           @add-image-blob="addImageBlob"
-          :editorUnderSpaceHeight="editorUnderSpaceHeight"
+          :editorHeaderSpaceHeight="editorHeaderSpaceHeight"
         ></CustomEditor>
       </ValidationProvider>
     </v-card>
@@ -213,7 +213,7 @@ export default {
         folderId: '',
       },
       runTimerStates: [], // {noteId , state, timerId}
-      editorUnderSpaceHeight: '205px',
+      editorHeaderSpaceHeight: '205px',
       isOpenMenu: false,
       isInitialized: false,
       task: defaultTask(),
@@ -428,9 +428,6 @@ export default {
     setHtmlToEditor(html) {
       this.$refs.editor.setHtmlToEditor(html);
     },
-    setEditorUnderSpaceHeight() {
-      this.$refs.editor.setEditorUnderSpaceHeight(this.editorUnderSpaceHeight);
-    },
     changeMenuValue() {
       this.isOpenMenu = !this.isOpenMenu;
     },
@@ -509,8 +506,6 @@ export default {
     if (to.params.noteId !== from.params.noteId) {
       this.load(to.params.projectId, to.params.folderId, to.params.noteId)
         .then(() => {
-          // TODO 紐づくタスクから高さを設定する
-          this.setEditorUnderSpaceHeight();
           next();
         })
         .catch(() => {

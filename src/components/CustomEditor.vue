@@ -25,7 +25,7 @@ export default {
       type: String,
       default: '',
     },
-    editorUnderSpaceHeight: {
+    editorHeaderSpaceHeight: {
       type: String,
       default: '0px',
     },
@@ -86,9 +86,9 @@ export default {
     changeEditor() {
       this.$emit('change', this.getHtmlText(), this.getText());
     },
-    setEditorUnderSpaceHeight(value) {
+    setEditorHeaderSpaceHeight(value) {
       const editor = document.querySelector('.te-ww-container .te-editor');
-      editor.style.setProperty('--under-height', value);
+      editor.style.setProperty('--header-height', value);
     },
   },
   mounted() {
@@ -103,7 +103,7 @@ export default {
     });
 
     // Editorの高さを設定する。
-    this.setEditorUnderSpaceHeight(this.editorUnderSpaceHeight);
+    this.setEditorHeaderSpaceHeight(this.editorHeaderSpaceHeight);
   },
 };
 </script>
@@ -114,10 +114,10 @@ export default {
 }
 
 .te-ww-container .te-editor {
-  // editorの下のスペースの高さ
-  --under-height: 0px;
+  // editorの上のスペースの高さ
+  --header-height: 0px;
 
-  height: calc(99vh - var(--under-height)) !important;
+  height: calc(99vh - var(--header-height)) !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
   margin-bottom: 1vh;
