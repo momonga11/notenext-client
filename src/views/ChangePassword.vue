@@ -1,5 +1,11 @@
 <template>
-  <CommonAuthPage titleText="パスワードリセット" commitButtonText="変更する" @commit-btn-click="submit" :height="370">
+  <CommonAuthPage
+    titleText="パスワードリセット"
+    commitButtonText="変更する"
+    @commit-btn-click="submit"
+    :height="370"
+    v-slot:default="{ commitBtnClick }"
+  >
     <v-card-subtitle class="pt-0 pb-5">新しいパスワードを設定してください。</v-card-subtitle>
     <CommonPasswordField
       :name="passwordInfo.label"
@@ -9,6 +15,7 @@
       :isShowAppendIcon="false"
       vid="confirmation"
       id="password-changepassword"
+      @keypress.enter.exact="commitBtnClick"
     ></CommonPasswordField>
     <CommonPasswordField
       :name="passwordInfo.label"
@@ -17,6 +24,7 @@
       :fieldClass="'mb-2'"
       :isConfirmed="true"
       id="password-confirm-changepassword"
+      @keypress.enter.exact="commitBtnClick"
     ></CommonPasswordField>
   </CommonAuthPage>
 </template>

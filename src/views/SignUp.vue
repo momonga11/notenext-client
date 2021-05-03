@@ -5,15 +5,28 @@
     @commit-btn-click="submit"
     :height="465"
   >
-    <CommonUserNameField v-model="auth.name" :fieldClass="'mb-2'" id="user-name-signup"></CommonUserNameField>
-    <CommonEmailField v-model="auth.email" :fieldClass="'mb-2'" id="email-signup"></CommonEmailField>
-    <CommonPasswordField
-      :name="passwordInfo.label"
-      v-model="auth.password"
-      :label="passwordInfo.label"
-      :fieldClass="'mb-2'"
-      id="password-signup"
-    ></CommonPasswordField>
+    <template v-slot:default="{ commitBtnClick }">
+      <CommonUserNameField
+        v-model="auth.name"
+        :fieldClass="'mb-2'"
+        id="user-name-signup"
+        @keypress.enter.exact="commitBtnClick"
+      ></CommonUserNameField>
+      <CommonEmailField
+        v-model="auth.email"
+        :fieldClass="'mb-2'"
+        id="email-signup"
+        @keypress.enter.exact="commitBtnClick"
+      ></CommonEmailField>
+      <CommonPasswordField
+        :name="passwordInfo.label"
+        v-model="auth.password"
+        :label="passwordInfo.label"
+        :fieldClass="'mb-2'"
+        id="password-signup"
+        @keypress.enter.exact="commitBtnClick"
+      ></CommonPasswordField>
+    </template>
     <template v-slot:bottom-items>
       <BaseLinkButton :to="{ name: 'signin' }" class="mt-5" id="signin-link"
         >すでにアカウントをお持ちの方はこちら</BaseLinkButton

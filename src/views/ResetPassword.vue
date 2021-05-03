@@ -5,10 +5,17 @@
     @commit-btn-click="submit"
     :height="340"
   >
-    <v-card-subtitle class="pt-0 pb-5"
-      >登録されているメールアドレスを入力してください。<br />パスワードリセットメールを送信します。</v-card-subtitle
-    >
-    <CommonEmailField v-model="auth.email" :fieldClass="'mb-2'" id="email-resetPassword"></CommonEmailField>
+    <template v-slot:default="{ commitBtnClick }">
+      <v-card-subtitle class="pt-0 pb-5"
+        >登録されているメールアドレスを入力してください。<br />パスワードリセットメールを送信します。</v-card-subtitle
+      >
+      <CommonEmailField
+        v-model="auth.email"
+        :fieldClass="'mb-2'"
+        id="email-resetPassword"
+        @keypress.enter.exact="commitBtnClick"
+      ></CommonEmailField>
+    </template>
     <template v-slot:bottom-items>
       <BaseLinkButton :to="{ name: 'signin' }" class="mt-5" id="signin-link">ログイン画面に戻る</BaseLinkButton>
     </template>

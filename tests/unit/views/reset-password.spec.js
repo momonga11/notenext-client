@@ -100,6 +100,14 @@ describe('resetPassword.vue', () => {
 
       expect(authStoreMock.actions.resetPassword).not.toHaveBeenCalled();
     });
+
+    it('EnterKeyを押下すると、パスワードリセットを実行する', async () => {
+      input.setValue('test@email.com');
+      input.trigger('keypress.enter');
+      await flushPromises();
+
+      expect(authStoreMock.actions.resetPassword).toHaveBeenCalled();
+    });
   });
 
   describe('パスワードリセット', () => {

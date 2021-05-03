@@ -91,6 +91,14 @@ describe('signup.vue', () => {
 
       expect(authStoreMock.actions.signup).not.toHaveBeenCalled();
     });
+
+    it('EnterKeyを押下すると、サインアップを実行する', async () => {
+      input.setValue('test-user-name');
+      input.trigger('keypress.enter');
+      await flushPromises();
+
+      expect(authStoreMock.actions.signup).toHaveBeenCalled();
+    });
   });
 
   describe('メールアドレス', () => {
@@ -140,6 +148,14 @@ describe('signup.vue', () => {
       await flushPromises();
 
       expect(authStoreMock.actions.signup).not.toHaveBeenCalled();
+    });
+
+    it('EnterKeyを押下すると、サインアップを実行する', async () => {
+      input.setValue('test@email.com');
+      input.trigger('keypress.enter');
+      await flushPromises();
+
+      expect(authStoreMock.actions.signup).toHaveBeenCalled();
     });
   });
 
@@ -200,6 +216,14 @@ describe('signup.vue', () => {
       await flushPromises();
 
       expect(input.attributes().type).toBe('text');
+    });
+
+    it('EnterKeyを押下すると、サインアップを実行する', async () => {
+      input.setValue('test-password');
+      input.trigger('keypress.enter');
+      await flushPromises();
+
+      expect(authStoreMock.actions.signup).toHaveBeenCalled();
     });
   });
 

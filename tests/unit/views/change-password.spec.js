@@ -156,6 +156,22 @@ describe('ChangePassword.vue', () => {
 
       expect(inputConfirm.attributes().type).toBe('text');
     });
+
+    describe('EnterKeyを押下すると、パスワード変更が実行される', () => {
+      it('パスワード', async () => {
+        input.trigger('keypress.enter');
+        await flushPromises();
+
+        expect(authStoreMock.actions.updatePassword).toHaveBeenCalled();
+      });
+
+      it('パスワード確認用', async () => {
+        inputConfirm.trigger('keypress.enter');
+        await flushPromises();
+
+        expect(authStoreMock.actions.updatePassword).toHaveBeenCalled();
+      });
+    });
   });
 
   describe('パスワード変更', () => {
