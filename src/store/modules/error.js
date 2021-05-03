@@ -50,10 +50,8 @@ export default {
           commit('create', { status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR, message: message.UNKNOWN_ERROR });
         }
       } else if (error.message) {
-        // TODO: Network Error のメッセージ
         commit('create', { status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR, message: message.NETWORK_ERROR });
       } else {
-        // TODO: 原因不明のエラーの場合
         commit('create', { status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR, message: message.UNKNOWN_ERROR });
       }
     },
