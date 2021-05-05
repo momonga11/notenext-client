@@ -1,7 +1,7 @@
 ※本リポジトリはフロントエンド側のソースコードとなります。
  バックエンド側は[こちら](https://github.com/momonga11/notenext-server "github notenext-server")よりご参照ください。
 
-<img src="https://github.com/momonga11/notenext-docs/blob/84b76f05ec137773b3269d14ccf6bb3fd30216a0/images/logo.png" alt="notenext_logo width="400px"">
+<img src="https://github.com/momonga11/notenext-docs/blob/84b76f05ec137773b3269d14ccf6bb3fd30216a0/images/logo.png" alt="notenext_logo width="400px">
 
 <img src="https://github.com/momonga11/notenext-docs/blob/84b76f05ec137773b3269d14ccf6bb3fd30216a0/images/notenext_image.png" alt="notenext_image">
 
