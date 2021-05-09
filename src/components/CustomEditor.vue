@@ -6,6 +6,7 @@
     initialEditType="wysiwyg"
     ref="toastuiEditor"
     @change="change"
+    @focus="focus"
     :initialValue="initialValue"
   />
 </template>
@@ -89,6 +90,9 @@ export default {
     setEditorHeaderSpaceHeight(value) {
       const editor = document.querySelector('.te-ww-container .te-editor');
       editor.style.setProperty('--header-height', value);
+    },
+    focus() {
+      this.$emit('focus');
     },
   },
   mounted() {
