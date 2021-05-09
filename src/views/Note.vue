@@ -157,6 +157,7 @@
           ref="editor"
           @change="changeEditor"
           @add-image-blob="addImageBlob"
+          @focus="isInitEditor = false"
           :editorHeaderSpaceHeight="editorHeaderSpaceHeight"
         ></CustomEditor>
       </ValidationProvider>
@@ -215,7 +216,7 @@ export default {
       runTimerStates: [], // {noteId , state, timerId}
       editorHeaderSpaceHeight: '205px',
       isOpenMenu: false,
-      isInitialized: false,
+      isInitEditor: false,
       task: defaultTask(),
       calendarMenu: false,
     };
@@ -294,7 +295,7 @@ export default {
             this.task = defaultTask();
           }
 
-          this.isInitialized = true;
+          this.isInitEditor = true;
           this.setHtmlToEditor(htmltext);
 
           // safariの場合、Editorにフォーカスが当たっていると、キャレットがおかしなところについてしまう問題があった。
@@ -312,8 +313,8 @@ export default {
     },
     changeEditor(htmltext, text) {
       // 初期化時は処理しない
-      if (this.isInitialized) {
-        this.isInitialized = false;
+      if (this.isInitEditor) {
+        this.isInitEditor = false;
         return;
       }
 
@@ -496,7 +497,7 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       // load処理を実行する前に、初期化フラグをtrueにする必要がある（loadが非同期処理のため）
-      vm.isInitialized = true;
+      vm.isInitEditor = true;
       vm.load(vm.projectId, vm.folderId, vm.noteId).catch(error => {
         vm.redirectTop(vm, error.response ? error.response.status : '');
       });

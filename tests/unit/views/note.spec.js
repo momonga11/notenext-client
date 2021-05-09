@@ -540,7 +540,7 @@ describe('Note.vue', () => {
 
       expect(wrapper.find('.error--text').text()).toBeFalsy();
 
-      await wrapper.setData({ isInitialized: false });
+      await wrapper.setData({ isInitEditor: false });
     });
 
     it('入力すると、更新のAPI接続が実行される', async () => {
