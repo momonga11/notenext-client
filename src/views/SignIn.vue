@@ -45,6 +45,9 @@
         id="sample-login-button"
         >サンプルログイン</BaseButton
       >
+      <div class="text-caption mt-2 grey--text" style="text-align: left">
+        ※こちらはメールアドレス、パスワードを入力せず、ご利用いただけます。
+      </div>
     </template>
   </CommonAuthPage>
 </template>
