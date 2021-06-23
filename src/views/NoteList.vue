@@ -1,7 +1,7 @@
 <template>
   <CommonNoteList :projectId="projectId" :searchQuery="searchQuery" :notSelectedNote="!isRouteNote" ref="commonNote">
     <template v-slot:list="{ searchedAlertHeight }">
-      <v-card height="120px" tile class="d-flex flex-column justify-space-between" outlined>
+      <v-card height="120px" tile class="d-flex flex-column justify-space-between" outlined style="z-index: 5">
         <div class="d-flex justify-space-between">
           <v-card-title class="pa-1 folder-name">
             <div class="overflow-text folder-name">
