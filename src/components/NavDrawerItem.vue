@@ -1,12 +1,5 @@
 <template>
-  <v-navigation-drawer
-    :value="drawer"
-    color="secondary"
-    floating
-    app
-    style="z-index: 2"
-    @input="$emit('input', $event)"
-  >
+  <v-navigation-drawer :value="drawer" color="secondary" floating app @input="$emit('input', $event)">
     <v-card flat tile height="64px" color="primary" class="overflow-hidden">
       <img class="main-logo ma-4" alt="notenext_logo" src="../assets/logo.png" />
     </v-card>
